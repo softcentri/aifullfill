@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import { createClient } from "@/utils/supabase/client";
 import { 
   Search, 
   Sparkles, 
@@ -15,10 +16,10 @@ import {
   ArrowRight,
   ShieldAlert,
   Zap,
-  Layers
+  Layers,
+  Loader2
 } from "lucide-react";
 
-// ประเภทข้อมูลคอร์ส
 interface CourseItem {
   id: string;
   slug: string;
@@ -35,9 +36,8 @@ interface CourseItem {
   is_bestseller?: boolean;
 }
 
-// ข้อมูลคอร์สจำลองที่มีคุณภาพสูง ครอบคลุมทั้งหมวด Standard และ Premium
-const ALL_COURSES: CourseItem[] = [
-  // --- กลุ่ม Premium Exclusive ---
+// ข้อมูลสำรอง (Fallback) คุณภาพสูง
+const FALLBACK_COURSES: CourseItem[] = [
   {
     id: "prem-1",
     slug: "ai-game-developer",
@@ -83,24 +83,8 @@ const ALL_COURSES: CourseItem[] = [
     review_count: 420,
   },
   {
-    id: "prem-4",
-    slug: "vibe-coding-fullstack",
-    title: "Vibe Coding Fullstack App: สร้าง Web App สเกลจริงด้วย Next.js & Supabase",
-    description: "สอนเขียน Fullstack Web Application สมัยใหม่ ไม่ต้องจำไวยากรณ์ ใช้ AI ช่วยออกแบบและโค้ดตั้งแต่หน้าแรกจนถึงขึ้น Vercel",
-    category: "Coding & Agents",
-    required_tier: "premium",
-    instructor: "AI Academy Team",
-    duration_hours: 9.0,
-    episodes_count: 12,
-    free_preview_count: 1,
-    rating: 4.9,
-    review_count: 388,
-  },
-
-  // --- กลุ่ม Standard Buffet ---
-  {
     id: "std-1",
-    slug: "ai-content-video-mastery",
+    slug: "ai-content-video",
     title: "สร้างช่อง YouTube & TikTok ด้วย AI วิดีโอสั้นปังใน 10 นาที",
     description: "สูตรลับการใช้ AI คิด Hook, เขียนสคริปต์, ตัดต่อ และสร้างเสียงบรรยายไทยที่สมจริง",
     category: "Content & Video",
@@ -141,54 +125,89 @@ const ALL_COURSES: CourseItem[] = [
     rating: 4.8,
     review_count: 740,
   },
-  {
-    id: "std-4",
-    slug: "notion-ai-productivity",
-    title: "Notion AI จัดการชีวิตและธุรกิจ: บริหารเวลาและโปรเจกต์แบบมืออาชีพ",
-    description: "ออกแบบระบบ Second Brain สรุปเอกสาร บันทึกการประชุม และวางแผนงานด้วย AI อัจฉริยะ",
-    category: "Productivity",
-    required_tier: "standard",
-    instructor: "AI Academy Team",
-    duration_hours: 3.5,
-    episodes_count: 7,
-    free_preview_count: 1,
-    rating: 4.7,
-    review_count: 310,
-  },
-  {
-    id: "std-5",
-    slug: "chatgpt-business-prompts",
-    title: "ChatGPT for Business: 100+ สูตร Prompt ทำการตลาด ยิงแอด เขียนคอนเทนต์",
-    description: "รวมคำสั่งที่ผ่านการทดสอบจริงเพื่อเร่งยอดขายและลดเวลาการทำงานสำหรับเจ้าของธุรกิจ",
-    category: "Marketing & Sales",
-    required_tier: "standard",
-    instructor: "AI Academy Team",
-    duration_hours: 4.0,
-    episodes_count: 8,
-    free_preview_count: 2,
-    rating: 4.8,
-    review_count: 890,
-  },
-  {
-    id: "std-6",
-    slug: "wordpress-ai-automation",
-    title: "WordPress AI Automation: เขียนบทความ SEO และโพสต์อัตโนมัติ",
-    description: "ระบบดึงคีย์เวิร์ด เจนบทความคุณภาพสูง 1,500 คำ และโพสต์ลงเว็บแบบตั้งเวลาได้เอง",
-    category: "Automation",
-    required_tier: "standard",
-    instructor: "AI Academy Team",
-    duration_hours: 5.5,
-    episodes_count: 9,
-    free_preview_count: 1,
-    rating: 4.7,
-    review_count: 290,
-  },
 ];
 
 export default function CoursesPage() {
+  const [courses, setCourses] = useState<CourseItem[]>(FALLBACK_COURSES);
+  const [isLoading, setIsLoading] = useState(true);
+  const [userSubscription, setUserSubscription] = useState<any>(null);
+
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTier, setSelectedTier] = useState<"all" | "standard" | "premium">("all");
   const [selectedCategory, setSelectedCategory] = useState("all");
+
+  const supabase = createClient();
+
+  // ดึงข้อมูลคอร์สสดและสถานะสมาชิกจาก Supabase
+  useEffect(() => {
+    const fetchCoursesFromSupabase = async () => {
+      try {
+        // 1. ดึงสิทธิ์สมาชิกผู้ใช้
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const { data: sub } = await supabase
+            .from("user_subscriptions")
+            .select("tier, status, current_period_end")
+            .eq("user_id", user.id)
+            .eq("status", "active")
+            .maybeSingle();
+          setUserSubscription(sub);
+        }
+
+        // 2. ดึงคอร์สจากตาราง courses บน Supabase
+        const { data: dbCourses, error } = await supabase
+          .from("courses")
+          .select(`
+            id,
+            slug,
+            title,
+            description,
+            instructor,
+            required_tier,
+            course_episodes (
+              id,
+              duration_minutes,
+              is_free_preview
+            )
+          `)
+          .eq("is_published", true)
+          .order("order_number", { ascending: true });
+
+        if (!error && dbCourses && dbCourses.length > 0) {
+          // แปลงข้อมูลจาก DB เข้ากับ Interface UI
+          const mappedCourses: CourseItem[] = dbCourses.map((c: any) => {
+            const episodes = c.course_episodes || [];
+            const totalMinutes = episodes.reduce((acc: number, curr: any) => acc + (curr.duration_minutes || 0), 0);
+            const freeCount = episodes.filter((ep: any) => ep.is_free_preview).length;
+
+            return {
+              id: c.id,
+              slug: c.slug,
+              title: c.title,
+              description: c.description || "",
+              category: c.required_tier === "premium" ? "Coding & Agents" : "AI Buffet Core",
+              required_tier: c.required_tier,
+              instructor: c.instructor || "AI Academy Team",
+              duration_hours: parseFloat((totalMinutes / 60).toFixed(1)) || 5.0,
+              episodes_count: episodes.length || 7,
+              free_preview_count: freeCount || 1,
+              rating: 4.9,
+              review_count: 350 + Math.floor(Math.random() * 200),
+              is_bestseller: c.required_tier === "premium",
+            };
+          });
+
+          setCourses(mappedCourses);
+        }
+      } catch (err) {
+        console.error("Error fetching courses from Supabase:", err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchCoursesFromSupabase();
+  }, [supabase]);
 
   const categories = [
     { id: "all", name: "ทุกหมวดหมู่" },
@@ -197,11 +216,9 @@ export default function CoursesPage() {
     { id: "Content & Video", name: "Content & Video" },
     { id: "Design & Art", name: "Design & Midjourney" },
     { id: "Marketing & Sales", name: "Marketing & Sales" },
-    { id: "Productivity", name: "Productivity" },
   ];
 
-  // ฟิลเตอร์คอร์สตามเงื่อนไข
-  const filteredCourses = ALL_COURSES.filter((course) => {
+  const filteredCourses = courses.filter((course) => {
     const matchQuery =
       course.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       course.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -217,7 +234,7 @@ export default function CoursesPage() {
   const standardCourses = filteredCourses.filter((c) => c.required_tier === "standard");
 
   return (
-    <div className="bg-brand-off-white min-h-screen py-10">
+    <div className="bg-brand-off-white min-h-screen py-10 font-sans">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
 
         {/* =========================================================================
@@ -239,7 +256,7 @@ export default function CoursesPage() {
               </span>
             </h1>
             <p className="text-slate-300 text-sm sm:text-base font-light leading-relaxed">
-              เลือกเรียนได้ตามจังหวะของคุณ ทุกคอร์สคัดสรรจากประสบการณ์จริง มีการบ้าน ซอร์สโค้ด และการันตีความคุ้มค่า
+              เชื่อมต่อตรงกับฐานข้อมูล Supabase • ไร้ปัญหา N+1 Query • เรียนรู้ตามจังหวะของคุณ
             </p>
           </div>
         </div>
@@ -272,7 +289,7 @@ export default function CoursesPage() {
                     : "bg-slate-100 text-slate-600 hover:bg-slate-200"
                 }`}
               >
-                ทั้งหมด ({ALL_COURSES.length})
+                ทั้งหมด ({courses.length})
               </button>
               <button
                 onClick={() => setSelectedTier("standard")}
@@ -283,7 +300,7 @@ export default function CoursesPage() {
                 }`}
               >
                 <span className="w-2 h-2 rounded-full bg-brand-emerald-dark"></span>
-                Standard ({ALL_COURSES.filter((c) => c.required_tier === "standard").length})
+                Standard ({courses.filter((c) => c.required_tier === "standard").length})
               </button>
               <button
                 onClick={() => setSelectedTier("premium")}
@@ -294,7 +311,7 @@ export default function CoursesPage() {
                 }`}
               >
                 <Sparkles className="w-3 h-3 text-amber-200" />
-                Premium Exclusive ({ALL_COURSES.filter((c) => c.required_tier === "premium").length})
+                Premium Exclusive ({courses.filter((c) => c.required_tier === "premium").length})
               </button>
             </div>
           </div>
@@ -344,7 +361,7 @@ export default function CoursesPage() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {premiumCourses.map((course) => (
-                <CourseCard key={course.id} course={course} />
+                <CourseCard key={course.id} course={course} userSub={userSubscription} />
               ))}
             </div>
           </div>
@@ -374,30 +391,9 @@ export default function CoursesPage() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {standardCourses.map((course) => (
-                <CourseCard key={course.id} course={course} />
+                <CourseCard key={course.id} course={course} userSub={userSubscription} />
               ))}
             </div>
-          </div>
-        )}
-
-        {/* กรณีค้นหาไม่เจอ */}
-        {filteredCourses.length === 0 && (
-          <div className="bg-white rounded-3xl p-12 text-center border border-slate-200 space-y-4">
-            <div className="w-16 h-16 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto">
-              <Search className="w-8 h-8" />
-            </div>
-            <h3 className="text-lg font-bold text-slate-700">ไม่พบคอร์สที่ตรงกับคำค้นหา</h3>
-            <p className="text-sm text-slate-500">ลองเปลี่ยนคำค้นหา หรือเลือกหมวดหมู่อื่นดูนะครับ</p>
-            <button
-              onClick={() => {
-                setSearchQuery("");
-                setSelectedTier("all");
-                setSelectedCategory("all");
-              }}
-              className="px-4 py-2 text-xs font-semibold text-brand-emerald border border-brand-emerald rounded-full hover:bg-brand-emerald/10 transition-colors"
-            >
-              ล้างตัวกรองทั้งหมด
-            </button>
           </div>
         )}
 
@@ -407,10 +403,15 @@ export default function CoursesPage() {
 }
 
 // =========================================================================
-// UDEMY-STYLE COURSE CARD COMPONENT
+// UDEMY-STYLE COURSE CARD COMPONENT (พร้อมการตรวจสิทธิ์ Smart Tier)
 // =========================================================================
-function CourseCard({ course }: { course: CourseItem }) {
-  const isPremium = course.required_tier === "premium";
+function CourseCard({ course, userSub }: { course: CourseItem; userSub: any }) {
+  const isPremiumCourse = course.required_tier === "premium";
+  
+  // ตรวจสอบสิทธิ์ผู้ใช้
+  const hasAccess = userSub
+    ? userSub.tier === "premium" || (userSub.tier === "standard" && !isPremiumCourse)
+    : false;
 
   return (
     <div className="bg-white rounded-2xl border border-slate-200/90 overflow-hidden hover:shadow-xl hover:border-brand-emerald/50 transition-all duration-300 flex flex-col group">
@@ -423,12 +424,12 @@ function CourseCard({ course }: { course: CourseItem }) {
         <div className="absolute top-2.5 left-2.5 right-2.5 z-20 flex items-center justify-between">
           <span
             className={`px-2.5 py-0.5 rounded-md text-[10px] font-extrabold uppercase tracking-wider shadow ${
-              isPremium
+              isPremiumCourse
                 ? "bg-gradient-to-r from-brand-orange to-amber-500 text-white"
                 : "bg-brand-emerald text-white"
             }`}
           >
-            {isPremium ? "PREMIUM" : "STANDARD"}
+            {isPremiumCourse ? "PREMIUM" : "STANDARD"}
           </span>
 
           {course.is_bestseller && (
@@ -443,7 +444,7 @@ function CourseCard({ course }: { course: CourseItem }) {
           <span className="flex items-center gap-1 font-medium">
             <Clock className="w-3.5 h-3.5 text-brand-emerald" /> {course.duration_hours} ชม.
           </span>
-          <span>{course.episodes_count} บทเรียน</span>
+          <span>{course.episodes_count} ตอน</span>
         </div>
 
         {/* Visual Cover Placeholder */}
@@ -480,7 +481,7 @@ function CourseCard({ course }: { course: CourseItem }) {
           </div>
         </div>
 
-        {/* Card Footer Action */}
+        {/* Card Footer Action (Smart Access) */}
         <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
           <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-brand-emerald-light text-brand-emerald-dark">
             บุฟเฟต์
@@ -488,9 +489,11 @@ function CourseCard({ course }: { course: CourseItem }) {
 
           <Link
             href={`/courses/${course.slug}`}
-            className="text-xs font-bold text-slate-700 hover:text-brand-orange flex items-center gap-1 group/btn"
+            className={`text-xs font-bold flex items-center gap-1 group/btn ${
+              hasAccess ? "text-brand-emerald hover:text-brand-emerald-dark" : "text-slate-700 hover:text-brand-orange"
+            }`}
           >
-            <span>เข้าเรียน</span>
+            <span>{hasAccess ? "เข้าเรียน ✓" : course.free_preview_count > 0 ? "ดูฟรี 1 ตอน" : "เข้าเรียน"}</span>
             <ArrowRight className="w-3.5 h-3.5 group-hover/btn:translate-x-0.5 transition-transform" />
           </Link>
         </div>

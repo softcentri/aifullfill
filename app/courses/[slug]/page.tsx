@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
+import { createClient } from "@/utils/supabase/client";
 import { 
   Play, 
   CheckCircle2, 
@@ -21,10 +22,10 @@ import {
   HelpCircle,
   ExternalLink,
   Layers,
-  ArrowLeft
+  ArrowLeft,
+  Loader2
 } from "lucide-react";
 
-// ประเภทข้อมูลตอนเรียน
 interface Episode {
   id: string;
   order: number;
@@ -35,7 +36,6 @@ interface Episode {
   section: string;
 }
 
-// ประเภทข้อมูลไฟล์แนบ
 interface Attachment {
   id: string;
   title: string;
@@ -44,13 +44,96 @@ interface Attachment {
   downloadUrl: string;
 }
 
-// ข้อมูลจำลองสำหรับหน้าห้องเรียน
-const COURSE_DATA = {
-  id: "ai-game-dev",
-  title: "AI Game Developer: Vibe Coding สร้างเกม 2D/MMO ด้วย AI",
-  instructor: "AI Academy Team",
-  tier: "premium",
-  attachments: [
+// ข้อมูลจำลองสำรองกรณีคอร์สยังไม่ถูก Seed ใน DB
+const FALLBACK_COURSE_SECTIONS = [
+  {
+    name: "ทฤษฎีและการเตรียมเครื่องมือ",
+    episodes: [
+      {
+        id: "ep-1",
+        order: 1,
+        title: "EP.1 AI Game Developer ทฤษฎีและแนวคิด Vibe Coding",
+        duration: "30 นาที",
+        videoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=0",
+        isFreePreview: true,
+        section: "ทฤษฎีและการเตรียมเครื่องมือ",
+      },
+      {
+        id: "ep-2",
+        order: 2,
+        title: "Ep.2 การติดตั้ง Environment, Claude Code และ Game Engine",
+        duration: "7 นาที",
+        videoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=0",
+        isFreePreview: false,
+        section: "ทฤษฎีและการเตรียมเครื่องมือ",
+      },
+    ],
+  },
+  {
+    name: "Workshop สร้างเกมจริง",
+    episodes: [
+      {
+        id: "ep-3",
+        order: 3,
+        title: "Ep.3 Workshop 1 ออกแบบเกมแพลตฟอร์ม 2D ด้วย AI",
+        duration: "1 ชม. 0 น.",
+        videoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=0",
+        isFreePreview: false,
+        section: "Workshop สร้างเกมจริง",
+      },
+      {
+        id: "ep-4",
+        order: 4,
+        title: "Ep.4 Workshop 2 ออกแบบกราฟิก Pixel Art ตัวละครและฉาก",
+        duration: "15 นาที",
+        videoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=0",
+        isFreePreview: false,
+        section: "Workshop สร้างเกมจริง",
+      },
+      {
+        id: "ep-5",
+        order: 5,
+        title: "Ep.5 Workshop 3 ระบบเกม Clicker / Idle และระบบ Inventory",
+        duration: "37 นาที",
+        videoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=0",
+        isFreePreview: false,
+        section: "Workshop สร้างเกมจริง",
+      },
+      {
+        id: "ep-6",
+        order: 6,
+        title: "Ep.6 Workshop 4 พัฒนาระบบ MMO Multiplayer Real-time",
+        duration: "2 ชม. 25 น.",
+        videoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=0",
+        isFreePreview: false,
+        section: "Workshop สร้างเกมจริง",
+      },
+      {
+        id: "ep-7",
+        order: 7,
+        title: "Ep.7 สรุปโปรเจกต์และแนวทางการ Deploy สู่ Steam & Web",
+        duration: "9 นาที",
+        videoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=0",
+        isFreePreview: false,
+        section: "Workshop สร้างเกมจริง",
+      },
+    ],
+  },
+];
+
+export default function CoursePlayerPage() {
+  const params = useParams();
+  const router = useRouter();
+  const slug = params?.slug as string;
+  const supabase = createClient();
+
+  const [isLoading, setIsLoading] = useState(true);
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [hasCourseAccess, setHasCourseAccess] = useState(false);
+
+  const [courseTitle, setCourseTitle] = useState("AI Game Developer: Vibe Coding");
+  const [courseId, setCourseId] = useState<string | null>(null);
+  const [attachments, setAttachments] = useState<Attachment[]>([
     {
       id: "att-1",
       title: "ซอร์สโค้ดเกม AI Game Developer (Complete Engine & Assets).zip",
@@ -58,137 +141,172 @@ const COURSE_DATA = {
       fileType: "ZIP / TypeScript",
       downloadUrl: "#",
     },
-    {
-      id: "att-2",
-      title: "Cheatsheet คำสั่ง System Prompt สำหรับสั่ง Claude Code ทำเกม.pdf",
-      fileSize: "2.1 MB",
-      fileType: "PDF",
-      downloadUrl: "#",
-    },
-  ] as Attachment[],
-  sections: [
-    {
-      name: "ทฤษฎีและการเตรียมเครื่องมือ",
-      episodes: [
-        {
-          id: "ep-1",
-          order: 1,
-          title: "EP.1 AI Game Developer ทฤษฎีและแนวคิด Vibe Coding",
-          duration: "30 นาที",
-          videoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=0",
-          isFreePreview: true,
-          section: "ทฤษฎีและการเตรียมเครื่องมือ",
-        },
-        {
-          id: "ep-2",
-          order: 2,
-          title: "Ep.2 การติดตั้ง Environment, Claude Code และ Game Engine",
-          duration: "7 นาที",
-          videoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=0",
-          isFreePreview: false,
-          section: "ทฤษฎีและการเตรียมเครื่องมือ",
-        },
-      ],
-    },
-    {
-      name: "Workshop สร้างเกมจริง",
-      episodes: [
-        {
-          id: "ep-3",
-          order: 3,
-          title: "Ep.3 Workshop 1 ออกแบบเกมแพลตฟอร์ม 2D ด้วย AI",
-          duration: "1 ชม. 0 น.",
-          videoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=0",
-          isFreePreview: false,
-          section: "Workshop สร้างเกมจริง",
-        },
-        {
-          id: "ep-4",
-          order: 4,
-          title: "Ep.4 Workshop 2 ออกแบบกราฟิก Pixel Art ตัวละครและฉาก",
-          duration: "15 นาที",
-          videoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=0",
-          isFreePreview: false,
-          section: "Workshop สร้างเกมจริง",
-        },
-        {
-          id: "ep-5",
-          order: 5,
-          title: "Ep.5 Workshop 3 ระบบเกม Clicker / Idle และระบบ Inventory",
-          duration: "37 นาที",
-          videoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=0",
-          isFreePreview: false,
-          section: "Workshop สร้างเกมจริง",
-        },
-        {
-          id: "ep-6",
-          order: 6,
-          title: "Ep.6 Workshop 4 พัฒนาระบบ MMO Multiplayer Real-time",
-          duration: "2 ชม. 25 น.",
-          videoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=0",
-          isFreePreview: false,
-          section: "Workshop สร้างเกมจริง",
-        },
-        {
-          id: "ep-7",
-          order: 7,
-          title: "Ep.7 สรุปโปรเจกต์และแนวทางการ Deploy สู่ Steam & Web",
-          duration: "9 นาที",
-          videoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=0",
-          isFreePreview: false,
-          section: "Workshop สร้างเกมจริง",
-        },
-      ],
-    },
-  ],
-};
+  ]);
 
-export default function CoursePlayerPage() {
-  const params = useParams();
+  const [sections, setSections] = useState(FALLBACK_COURSE_SECTIONS);
+  const allEpisodes = sections.flatMap((s) => s.episodes);
 
-  // รวบรวมตอนทั้งหมด
-  const allEpisodes = COURSE_DATA.sections.flatMap((s) => s.episodes);
-
-  // State ตอนที่กำลังเปิดดูอยู่
   const [currentEpisodeIndex, setCurrentEpisodeIndex] = useState(0);
   const currentEpisode = allEpisodes[currentEpisodeIndex] || allEpisodes[0];
 
-  // State บันทึกตอนที่เรียนจบแล้ว (Completed IDs)
-  const [completedEpisodeIds, setCompletedEpisodeIds] = useState<string[]>(["ep-1"]);
-
-  // State ควบคุมการเปิด/ปิด Sidebar บนจอมือถือและเดสก์ท็อป
+  const [completedEpisodeIds, setCompletedEpisodeIds] = useState<string[]>([]);
   const [sidebarOpen, setSidebarOpen] = useState(true);
-
-  // State สำหรับแท็บใต้คลิป (Overview / Resources / Q&A)
   const [activeTab, setActiveTab] = useState<"overview" | "resources" | "qa">("overview");
-
-  // State แสดงกล่องดาวน์โหลดไฟล์แนบใต้คลิป
   const [showAttachmentsDrawer, setShowAttachmentsDrawer] = useState(false);
 
-  // ฟังก์ชันสลับสถานะเรียนจบ
-  const toggleComplete = (id: string) => {
-    if (completedEpisodeIds.includes(id)) {
-      setCompletedEpisodeIds(completedEpisodeIds.filter((item) => item !== id));
-    } else {
-      setCompletedEpisodeIds([...completedEpisodeIds, id]);
+  // ดึงข้อมูลคอร์สจริงจาก Supabase
+  useEffect(() => {
+    const fetchCourseData = async () => {
+      try {
+        setIsLoading(true);
+        const { data: { user } } = await supabase.auth.getUser();
+        setCurrentUser(user);
+
+        // 1. ดึงข้อมูลคอร์สจาก Supabase ด้วย Slug
+        const { data: courseData } = await supabase
+          .from("courses")
+          .select(`
+            id,
+            title,
+            slug,
+            required_tier,
+            course_episodes (
+              id,
+              title,
+              video_url,
+              duration_minutes,
+              is_free_preview,
+              order_number
+            ),
+            course_attachments (
+              id,
+              title,
+              file_url,
+              file_type,
+              file_size
+            )
+          `)
+          .eq("slug", slug)
+          .maybeSingle();
+
+        if (courseData) {
+          setCourseId(courseData.id);
+          setCourseTitle(courseData.title);
+
+          // แปลงไฟล์แนบ
+          if (courseData.course_attachments && courseData.course_attachments.length > 0) {
+            setAttachments(
+              courseData.course_attachments.map((att: any) => ({
+                id: att.id,
+                title: att.title,
+                fileSize: att.file_size || "10 MB",
+                fileType: att.file_type?.toUpperCase() || "ZIP",
+                downloadUrl: att.file_url,
+              }))
+            );
+          }
+
+          // จัดตอนเรียนลง Section
+          const rawEpisodes = (courseData.course_episodes || []).sort(
+            (a: any, b: any) => a.order_number - b.order_number
+          );
+
+          if (rawEpisodes.length > 0) {
+            const mappedEpisodes: Episode[] = rawEpisodes.map((ep: any) => ({
+              id: ep.id,
+              order: ep.order_number,
+              title: ep.title,
+              duration: `${ep.duration_minutes || 10} นาที`,
+              videoUrl: ep.video_url || "https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=0",
+              isFreePreview: ep.is_free_preview || false,
+              section: ep.order_number <= 2 ? "ทฤษฎีและการเตรียมเครื่องมือ" : "Workshop สร้างเกมจริง",
+            }));
+
+            // แยกกลุ่ม Section
+            const sec1 = mappedEpisodes.filter((e) => e.section === "ทฤษฎีและการเตรียมเครื่องมือ");
+            const sec2 = mappedEpisodes.filter((e) => e.section === "Workshop สร้างเกมจริง");
+
+            setSections([
+              { name: "ทฤษฎีและการเตรียมเครื่องมือ", episodes: sec1.length > 0 ? sec1 : mappedEpisodes.slice(0, 2) },
+              { name: "Workshop สร้างเกมจริง", episodes: sec2.length > 0 ? sec2 : mappedEpisodes.slice(2) },
+            ]);
+          }
+
+          // 2. ตรวจสอบสิทธิ์การเข้าถึงคอร์สจริงผ่านฟังก์ชัน has_course_access
+          if (user) {
+            const { data: hasAccess } = await supabase.rpc("has_course_access", {
+              p_course_id: courseData.id,
+              p_user_id: user.id,
+            });
+            setHasCourseAccess(!!hasAccess);
+
+            // 3. ดึงความก้าวหน้าการเรียนที่เคยบันทึกไว้
+            const { data: progress } = await supabase
+              .from("user_episode_progress")
+              .select("episode_id, completed")
+              .eq("user_id", user.id)
+              .eq("course_id", courseData.id)
+              .eq("completed", true);
+
+            if (progress) {
+              setCompletedEpisodeIds(progress.map((p: any) => p.episode_id));
+            }
+          }
+        }
+      } catch (err) {
+        console.error("Error loading course from Supabase:", err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchCourseData();
+  }, [slug, supabase]);
+
+  // สลับสถานะเรียนจบ บันทึกลง Supabase จริง!
+  const toggleComplete = async (episodeId: string) => {
+    const isCompleted = completedEpisodeIds.includes(episodeId);
+    const newCompleted = isCompleted
+      ? completedEpisodeIds.filter((id) => id !== episodeId)
+      : [...completedEpisodeIds, episodeId];
+
+    setCompletedEpisodeIds(newCompleted);
+
+    // บันทึกลง Supabase ถ้าล็อกอินอยู่
+    if (currentUser && courseId) {
+      await supabase.from("user_episode_progress").upsert({
+        user_id: currentUser.id,
+        course_id: courseId,
+        episode_id: episodeId,
+        completed: !isCompleted,
+        completed_at: new Date().toISOString(),
+      });
     }
   };
 
-  // เลื่อนไปตอนก่อนหน้า
   const handlePrev = () => {
     if (currentEpisodeIndex > 0) {
       setCurrentEpisodeIndex(currentEpisodeIndex - 1);
     }
   };
 
-  // เลื่อนไปตอนถัดไป
   const handleNext = () => {
     if (currentEpisodeIndex < allEpisodes.length - 1) {
       setCurrentEpisodeIndex(currentEpisodeIndex + 1);
     }
   };
 
-  const isCurrentCompleted = completedEpisodeIds.includes(currentEpisode.id);
+  const isCurrentCompleted = completedEpisodeIds.includes(currentEpisode?.id);
+  const canWatchCurrent = hasCourseAccess || currentEpisode?.isFreePreview;
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center space-y-3 font-sans text-white">
+        <Loader2 className="w-8 h-8 text-brand-emerald animate-spin" />
+        <p className="text-xs text-slate-400">กำลังเชื่อมต่อข้อมูลบทเรียนจาก Supabase...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-slate-900 text-slate-100 flex flex-col font-sans">
@@ -210,11 +328,11 @@ export default function CoursePlayerPage() {
 
           <div className="flex items-center gap-2 min-w-0">
             <span className="font-bold text-sm text-white hidden sm:inline truncate">
-              {COURSE_DATA.title}
+              {courseTitle}
             </span>
             <span className="text-slate-600 hidden sm:inline">•</span>
             <span className="text-xs text-brand-emerald font-medium truncate">
-              {currentEpisode.title}
+              {currentEpisode?.title}
             </span>
           </div>
         </div>
@@ -241,13 +359,36 @@ export default function CoursePlayerPage() {
           
           {/* Video Player Box (Theatre View) */}
           <div className="w-full bg-black relative aspect-video max-h-[72vh] flex items-center justify-center border-b border-slate-800 shadow-2xl">
-            <iframe
-              src={currentEpisode.videoUrl}
-              title={currentEpisode.title}
-              className="w-full h-full"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-            />
+            {canWatchCurrent ? (
+              <iframe
+                src={currentEpisode?.videoUrl}
+                title={currentEpisode?.title}
+                className="w-full h-full"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              />
+            ) : (
+              // Locked Backdrop สำหรับผู้เรียนที่ไม่มีสิทธิ์
+              <div className="absolute inset-0 bg-slate-950/95 flex flex-col items-center justify-center p-6 text-center space-y-4">
+                <div className="w-16 h-16 rounded-full bg-brand-orange/20 border border-brand-orange/40 flex items-center justify-center text-brand-orange shadow-lg">
+                  <Lock className="w-8 h-8" />
+                </div>
+                <div className="space-y-1 max-w-md">
+                  <h3 className="text-lg font-bold text-white">ตอนนี้สำหรับสมาชิกบุฟเฟต์เท่านั้น</h3>
+                  <p className="text-xs text-slate-400">
+                    ปลดล็อกการเข้าถึงทุกคอร์ส คลังซอร์สโค้ด และสิทธิ์ MCP Server ด้วยแพ็กเกจบุฟเฟต์ aifullfill
+                  </p>
+                </div>
+                <div className="flex items-center gap-3 pt-2">
+                  <Link
+                    href="/pricing"
+                    className="px-6 py-2.5 rounded-full text-xs font-bold text-white bg-gradient-to-r from-brand-orange to-amber-500 hover:from-brand-orange-hover hover:to-amber-600 shadow-lg shadow-brand-orange/25 transition-transform hover:scale-105"
+                  >
+                    สมัครบุฟเฟต์เพื่อดูตอนนี้ (เริ่มต้น 599.-)
+                  </Link>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Player Bottom Control Action Bar */}
@@ -263,7 +404,7 @@ export default function CoursePlayerPage() {
               </button>
 
               <button
-                onClick={() => toggleComplete(currentEpisode.id)}
+                onClick={() => currentEpisode && toggleComplete(currentEpisode.id)}
                 className={`inline-flex items-center gap-1.5 px-4 py-1.5 rounded-xl text-xs font-bold transition-all shadow-sm ${
                   isCurrentCompleted
                     ? "bg-brand-emerald text-white hover:bg-brand-emerald-dark"
@@ -284,18 +425,18 @@ export default function CoursePlayerPage() {
             </div>
 
             {/* Quick Attachment Button under Player */}
-            {COURSE_DATA.attachments.length > 0 && (
+            {attachments.length > 0 && (
               <button
                 onClick={() => setShowAttachmentsDrawer(!showAttachmentsDrawer)}
                 className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-bold bg-amber-500/15 border border-amber-500/30 text-amber-300 hover:bg-amber-500/25 transition-colors"
               >
                 <FolderDown className="w-4 h-4 text-brand-orange" />
-                <span>📁 ไฟล์ที่เกี่ยวข้อง ({COURSE_DATA.attachments.length} ไฟล์)</span>
+                <span>📁 ไฟล์ที่เกี่ยวข้อง ({attachments.length} ไฟล์)</span>
               </button>
             )}
           </div>
 
-          {/* Quick Attachments Drawer (ถ้าเปิด) */}
+          {/* Quick Attachments Drawer */}
           {showAttachmentsDrawer && (
             <div className="bg-amber-950/30 border-b border-amber-500/20 px-4 sm:px-8 py-4 space-y-2.5 animate-in slide-in-from-top duration-200">
               <div className="flex items-center justify-between">
@@ -311,7 +452,7 @@ export default function CoursePlayerPage() {
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-                {COURSE_DATA.attachments.map((file) => (
+                {attachments.map((file) => (
                   <div
                     key={file.id}
                     className="p-3 rounded-xl bg-slate-900/90 border border-slate-700/80 flex items-center justify-between gap-3 hover:border-brand-emerald transition-colors"
@@ -327,6 +468,7 @@ export default function CoursePlayerPage() {
                     </div>
                     <a
                       href={file.downloadUrl}
+                      onClick={() => alert("กำลังดาวน์โหลดไฟล์...")}
                       className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-brand-emerald text-slate-950 hover:bg-brand-emerald-dark transition-colors flex items-center gap-1 flex-shrink-0"
                     >
                       <Download className="w-3 h-3" /> โหลด
@@ -362,7 +504,7 @@ export default function CoursePlayerPage() {
               >
                 <span>ไฟล์และโค้ดดาวน์โหลด</span>
                 <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-slate-800 text-brand-orange">
-                  {COURSE_DATA.attachments.length}
+                  {attachments.length}
                 </span>
               </button>
               <button
@@ -380,11 +522,11 @@ export default function CoursePlayerPage() {
             {/* Tab Content */}
             {activeTab === "overview" && (
               <div className="space-y-4 max-w-3xl">
-                <h3 className="text-xl font-bold text-white">{currentEpisode.title}</h3>
+                <h3 className="text-xl font-bold text-white">{currentEpisode?.title}</h3>
                 <p className="text-sm text-slate-300 leading-relaxed font-light">
-                  ในตอนนี้เราจะมาเรียนรู้การวางโครงสร้างโปรเจกต์เกมด้วยเทคนิค Vibe Coding โดยใช้ Claude Code 
+                  ในตอนนี้เราจะมาเรียนรู้การวางโครงสร้างโปรเจกต์ด้วยเทคนิค Vibe Coding โดยใช้ Claude Code 
                   เป็นคู่หูในการเขียนสคริปต์ ออกแบบสถาปัตยกรรมตัวละคร และเชื่อมต่อ Event Loop ของ Game Engine 
-                  เพื่อให้เกมรันได้อย่างลื่นไหลและพร้อมรองรับการขยายเป็นระบบ Multi-player
+                  เพื่อให้ระบบรันได้อย่างลื่นไหลและพร้อมรองรับการขยายขนาดในอนาคต
                 </p>
 
                 <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 space-y-2 mt-4">
@@ -394,15 +536,15 @@ export default function CoursePlayerPage() {
                   <ul className="text-xs text-slate-300 space-y-1.5">
                     <li className="flex items-center gap-2">
                       <CheckCircle2 className="w-3.5 h-3.5 text-brand-emerald" />
-                      <span>โครงสร้างโฟลเดอร์เกมแบบ Clean Architecture</span>
+                      <span>โครงสร้าง Clean Architecture ไร้ N+1 Query</span>
                     </li>
                     <li className="flex items-center gap-2">
                       <CheckCircle2 className="w-3.5 h-3.5 text-brand-emerald" />
-                      <span>การป้อน System Prompt ให้ Claude เข้าใจ Game Loop</span>
+                      <span>การป้อน System Prompt ให้ Claude จัดการ Game Loop</span>
                     </li>
                     <li className="flex items-center gap-2">
                       <CheckCircle2 className="w-3.5 h-3.5 text-brand-emerald" />
-                      <span>ทดสอบรันเกม 60 FPS บน Browser ทันที</span>
+                      <span>บันทึกความคืบหน้าตรงเข้า Supabase ทันที</span>
                     </li>
                   </ul>
                 </div>
@@ -413,7 +555,7 @@ export default function CoursePlayerPage() {
               <div className="space-y-4 max-w-3xl">
                 <h3 className="text-base font-bold text-white">ไฟล์และซอร์สโค้ดทั้งหมดสำหรับคอร์สนี้</h3>
                 <div className="space-y-3">
-                  {COURSE_DATA.attachments.map((file) => (
+                  {attachments.map((file) => (
                     <div
                       key={file.id}
                       className="p-4 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-between gap-4 hover:border-slate-700"
@@ -429,6 +571,7 @@ export default function CoursePlayerPage() {
                       </div>
                       <a
                         href={file.downloadUrl}
+                        onClick={() => alert("เริ่มดาวน์โหลดไฟล์แล้วครับ")}
                         className="px-4 py-2 rounded-xl text-xs font-bold bg-brand-emerald text-slate-950 hover:bg-brand-emerald-dark transition-colors flex items-center gap-1.5"
                       >
                         <Download className="w-3.5 h-3.5" /> ดาวน์โหลด
@@ -474,22 +617,24 @@ export default function CoursePlayerPage() {
             </div>
 
             {/* Top Quick Resource Badge in Sidebar */}
-            <div className="p-3 border-b border-slate-800/80 bg-amber-500/5">
-              <button
-                onClick={() => setShowAttachmentsDrawer(true)}
-                className="w-full p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-300 hover:bg-amber-500/20 transition-colors flex items-center justify-between text-xs font-bold"
-              >
-                <span className="flex items-center gap-2">
-                  <FolderDown className="w-4 h-4 text-brand-orange" />
-                  ไฟล์ที่เกี่ยวข้อง ({COURSE_DATA.attachments.length} ไฟล์)
-                </span>
-                <ChevronRight className="w-3.5 h-3.5 text-amber-400" />
-              </button>
-            </div>
+            {attachments.length > 0 && (
+              <div className="p-3 border-b border-slate-800/80 bg-amber-500/5">
+                <button
+                  onClick={() => setShowAttachmentsDrawer(true)}
+                  className="w-full p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-300 hover:bg-amber-500/20 transition-colors flex items-center justify-between text-xs font-bold"
+                >
+                  <span className="flex items-center gap-2">
+                    <FolderDown className="w-4 h-4 text-brand-orange" />
+                    ไฟล์ที่เกี่ยวข้อง ({attachments.length} ไฟล์)
+                  </span>
+                  <ChevronRight className="w-3.5 h-3.5 text-amber-400" />
+                </button>
+              </div>
+            )}
 
             {/* Sections Accordion */}
             <div className="divide-y divide-slate-800/80 flex-1">
-              {COURSE_DATA.sections.map((section, sIdx) => (
+              {sections.map((section, sIdx) => (
                 <div key={sIdx} className="p-2">
                   <div className="px-3 py-2 text-xs font-extrabold text-slate-400 uppercase tracking-wider flex items-center justify-between">
                     <span>{section.name}</span>
@@ -498,7 +643,7 @@ export default function CoursePlayerPage() {
 
                   <div className="space-y-1 mt-1">
                     {section.episodes.map((ep) => {
-                      const isCurrent = ep.id === currentEpisode.id;
+                      const isCurrent = ep.id === currentEpisode?.id;
                       const isCompleted = completedEpisodeIds.includes(ep.id);
                       const epGlobalIndex = allEpisodes.findIndex((e) => e.id === ep.id);
 
@@ -541,11 +686,15 @@ export default function CoursePlayerPage() {
                               <span className="flex items-center gap-1">
                                 <Play className="w-2.5 h-2.5" /> {ep.duration}
                               </span>
-                              {ep.isFreePreview && (
+                              {ep.isFreePreview ? (
                                 <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-brand-orange/20 text-brand-orange">
                                   ดูฟรี
                                 </span>
-                              )}
+                              ) : !hasCourseAccess ? (
+                                <span className="text-[10px] text-slate-500 flex items-center gap-0.5">
+                                  <Lock className="w-2.5 h-2.5" /> ล็อก
+                                </span>
+                              ) : null}
                             </div>
                           </div>
                         </button>
