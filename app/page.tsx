@@ -52,7 +52,14 @@ export default function HomePage() {
 
               {/* Skill Tags */}
               <div className="flex flex-wrap justify-center lg:justify-start gap-2 pt-2">
-                {["Claude Masterclass", "Vibe Coding", "n8n Automation", "AI Agents & MCP", "LINE Bot AI", "Midjourney & Video"].map((tag, idx) => (
+                {[
+                  "Desktop Agents (Antigravity/Codex)", 
+                  "ComfyUI ฟรี 100%", 
+                  "Local AI (DeepSeek/Ollama)", 
+                  "Vibe Coding Web App", 
+                  "AI E-Book Masterclass", 
+                  "Google Flow & Grok Video"
+                ].map((tag, idx) => (
                   <span key={idx} className="px-3 py-1 rounded-full text-xs font-medium bg-slate-800/80 text-slate-300 border border-slate-700 hover:border-brand-emerald transition-colors">
                     {tag}
                   </span>
@@ -117,10 +124,10 @@ export default function HomePage() {
                       <BookOpen className="w-5 h-5" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="text-sm font-semibold text-white truncate">AI Game Developer Masterclass</div>
-                      <div className="text-xs text-slate-400">8 ตอน • มีไฟล์แนบ Workshop</div>
+                      <div className="text-sm font-semibold text-white truncate">Course 101: AI E-Book Masterclass</div>
+                      <div className="text-xs text-slate-400">ลายเซ็นอาจารย์อั๋น • ทำเงินต้นทุน 0 บาท</div>
                     </div>
-                    <span className="text-xs font-bold text-brand-emerald">พร้อมเรียน</span>
+                    <span className="text-xs font-bold text-brand-emerald">Standard</span>
                   </div>
 
                   <div className="p-3.5 rounded-2xl bg-slate-800/60 border border-slate-700/60 flex items-center gap-3.5 hover:border-brand-emerald/50 transition-colors">
@@ -128,10 +135,10 @@ export default function HomePage() {
                       <Code2 className="w-5 h-5" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="text-sm font-semibold text-white truncate">OmniVoice & Line CRM Code</div>
-                      <div className="text-xs text-slate-400">ซอร์สโค้ดสำเร็จรูป + คู่มือรัน</div>
+                      <div className="text-sm font-semibold text-white truncate">Course 202: Vibe Coding Web App</div>
+                      <div className="text-xs text-slate-400">สั่ง Desktop Agent + Supabase</div>
                     </div>
-                    <span className="text-xs font-bold text-indigo-400">แจกโค้ด</span>
+                    <span className="text-xs font-bold text-brand-orange">Premium</span>
                   </div>
 
                   <div className="p-3.5 rounded-2xl bg-slate-800/60 border border-slate-700/60 flex items-center gap-3.5 hover:border-brand-emerald/50 transition-colors">
@@ -139,10 +146,10 @@ export default function HomePage() {
                       <Terminal className="w-5 h-5" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="text-sm font-semibold text-white truncate">Classroom Toolkit MCP Server</div>
-                      <div className="text-xs text-slate-400">ระบบคุมสิทธิ์ Agentic AI License</div>
+                      <div className="text-sm font-semibold text-white truncate">Course 301: Local LLM (DeepSeek)</div>
+                      <div className="text-xs text-slate-400">รัน AI ออฟไลน์ฟรี 100% ไม่ง้อเน็ต</div>
                     </div>
-                    <span className="text-xs font-bold text-brand-orange">Active Key</span>
+                    <span className="text-xs font-bold text-brand-emerald">Standard</span>
                   </div>
                 </div>
 

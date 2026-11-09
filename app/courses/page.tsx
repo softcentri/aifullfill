@@ -14,10 +14,12 @@ import {
   Filter, 
   CheckCircle2, 
   ArrowRight,
-  ShieldAlert,
+  ShieldCheck,
   Zap,
   Layers,
-  Loader2
+  Laptop,
+  Cpu,
+  Coins
 } from "lucide-react";
 
 interface CourseItem {
@@ -36,17 +38,33 @@ interface CourseItem {
   is_bestseller?: boolean;
 }
 
-// ข้อมูลสำรอง (Fallback) คุณภาพสูง
-const FALLBACK_COURSES: CourseItem[] = [
+// ข้อมูล 9 คอร์สหลักตาม Master Roadmap ของอาจารย์อั๋น
+const MASTER_COURSES: CourseItem[] = [
+  // หมวด 1: AI Creator & Visual Production
   {
-    id: "prem-1",
-    slug: "ai-game-developer",
-    title: "AI Game Developer: Vibe Coding สร้างเกม 2D/MMO ด้วย AI ใครก็ทำได้",
-    description: "เจาะลึกการใช้ Claude และ AI Agent เขียนโค้ดเกมตั้งแต่เริ่มต้นจนถึงระบบ Multi-player MMO พร้อมซอร์สโค้ดครบชุด",
-    category: "Coding & Agents",
-    required_tier: "premium",
-    instructor: "AI Academy Team",
-    duration_hours: 8.5,
+    id: "c-101",
+    slug: "course-101-ai-ebook-masterclass",
+    title: "Course 101: AI E-Book & Digital Asset Masterclass (ลายเซ็นอาจารย์อั๋น)",
+    description: "ผลิต E-Book และสื่อดิจิทัลแบบ Full Pipeline ครบวงจรโดยแทบไม่มีต้นทุนเครื่องมือ ออกแบบปก 3D Mockup จัดรูปเล่มพร้อมขายทำเงิน",
+    category: "AI Creator & Production",
+    required_tier: "standard",
+    instructor: "อาจารย์อั๋น (AIEbookAcademy)",
+    duration_hours: 5.5,
+    episodes_count: 5,
+    free_preview_count: 1,
+    rating: 4.9,
+    review_count: 640,
+    is_bestseller: true,
+  },
+  {
+    id: "c-102",
+    slug: "course-102-comfyui-zero-to-hero",
+    title: "Course 102: ComfyUI Zero-to-Hero: คุมงานภาพและกราฟิกระดับเทพแบบฟรี 100%",
+    description: "ปลดแอกค่าสมาชิก Midjourney ด้วย ComfyUI ในเครื่อง คุม Character หน้าตรง คุมแสง Inpainting แก้เฉพาะจุดด้วย Flux & SDXL",
+    category: "AI Creator & Production",
+    required_tier: "standard",
+    instructor: "อาจารย์อั๋น (AIEbookAcademy)",
+    duration_hours: 7.0,
     episodes_count: 8,
     free_preview_count: 1,
     rating: 4.9,
@@ -54,82 +72,116 @@ const FALLBACK_COURSES: CourseItem[] = [
     is_bestseller: true,
   },
   {
-    id: "prem-2",
-    slug: "claude-masterclass",
-    title: "Claude 3.5 & 3.7 Sonnet Masterclass: รัน Agentic Coding ระดับเซียน",
-    description: "สั่ง Claude Code และสร้าง MCP Server เช็คสิทธิ์และเชื่อมฐานข้อมูลในระดับโปรดักชัน",
-    category: "Coding & Agents",
-    required_tier: "premium",
-    instructor: "AI Academy Team",
-    duration_hours: 6.5,
-    episodes_count: 10,
-    free_preview_count: 2,
-    rating: 4.9,
-    review_count: 680,
-    is_bestseller: true,
-  },
-  {
-    id: "prem-3",
-    slug: "n8n-automation-pro",
-    title: "n8n Automation Pro Workflows: ดึงข้อมูลอัตโนมัติ ยิงแชท LINE และ CRM",
-    description: "สร้าง Workflow อัตโนมัติช่วยประหยัดเวลาการทำงาน ลดงานซ้ำซาก 90% ด้วยระบบ No-Code + AI",
-    category: "Automation",
-    required_tier: "premium",
-    instructor: "AI Academy Team",
-    duration_hours: 10.0,
-    episodes_count: 15,
-    free_preview_count: 1,
-    rating: 4.8,
-    review_count: 420,
-  },
-  {
-    id: "std-1",
-    slug: "ai-content-video",
-    title: "สร้างช่อง YouTube & TikTok ด้วย AI วิดีโอสั้นปังใน 10 นาที",
-    description: "สูตรลับการใช้ AI คิด Hook, เขียนสคริปต์, ตัดต่อ และสร้างเสียงบรรยายไทยที่สมจริง",
-    category: "Content & Video",
+    id: "c-103",
+    slug: "course-103-ai-video-production",
+    title: "Course 103: AI Video Production: Google Flow, Grok Video & Minimax",
+    description: "ผลิตคลิปไวรัลและคลิปเล่าเรื่องคุณภาพสูง ด้วยต้นทุนที่ถูกที่สุด ผ่าน Google Flow, Grok Video, Minimax (Video/Voice) และ CapCut",
+    category: "AI Creator & Production",
     required_tier: "standard",
-    instructor: "AI Academy Team",
-    duration_hours: 5.0,
-    episodes_count: 9,
-    free_preview_count: 2,
-    rating: 4.8,
-    review_count: 1250,
-    is_bestseller: true,
-  },
-  {
-    id: "std-2",
-    slug: "midjourney-mastery",
-    title: "Midjourney Mastery: วาดภาพประกอบ ปกหนังสือ โลโก้ และสินค้าให้ขายได้",
-    description: "รวมเทคนิคการเขียน Prompt คุมสไตล์ ตัวละครเดิม และการสร้างภาพความละเอียดสูง 4K",
-    category: "Design & Art",
-    required_tier: "standard",
-    instructor: "AI Academy Team",
-    duration_hours: 4.5,
-    episodes_count: 8,
-    free_preview_count: 1,
-    rating: 4.9,
-    review_count: 980,
-  },
-  {
-    id: "std-3",
-    slug: "line-chatbot-ai",
-    title: "สร้างบอท LINE OA ปิดการขายอัตโนมัติด้วย ChatGPT API",
-    description: "ประกอบร่างแชทบอทตอบคำถามลูกค้า รับออเดอร์ และสรุปยอดขายลง Google Sheets แบบจับมือทำ",
-    category: "Marketing & Sales",
-    required_tier: "standard",
-    instructor: "AI Academy Team",
+    instructor: "อาจารย์อั๋น (AIEbookAcademy)",
     duration_hours: 6.0,
-    episodes_count: 11,
-    free_preview_count: 2,
+    episodes_count: 7,
+    free_preview_count: 1,
     rating: 4.8,
-    review_count: 740,
+    review_count: 430,
+  },
+
+  // หมวด 2: Desktop Agents & Vibe Coding
+  {
+    id: "c-201",
+    slug: "course-201-desktop-agent-mastery",
+    title: "Course 201: Desktop Agent Mastery (Antigravity & Cowork / Codex)",
+    description: "ปูพื้นฐานการใช้ Desktop Agent ทำงานแทนมนุษย์ อ่าน-แก้-สร้างไฟล์ในเครื่อง สั่งงานแบบโปรเจกต์เดียวจบ ติดตั้งสภาพแวดล้อมพร้อมใช้",
+    category: "Desktop Agents & Vibe Coding",
+    required_tier: "standard",
+    instructor: "อาจารย์อั๋น (AIEbookAcademy)",
+    duration_hours: 6.5,
+    episodes_count: 6,
+    free_preview_count: 1,
+    rating: 4.9,
+    review_count: 380,
+    is_bestseller: true,
+  },
+  {
+    id: "c-202",
+    slug: "course-202-vibe-coding-web-app",
+    title: "Course 202: Vibe Coding สร้าง Web Application ด้วย Desktop Agent + Supabase",
+    description: "สร้างเว็บพร้อมระบบฐานข้อมูลและระบบล็อกอิน โดยสั่งงานผ่าน Desktop Agent (Antigravity / Codex) แบบ Non-coder ไร้ปัญหา N+1 Query",
+    category: "Desktop Agents & Vibe Coding",
+    required_tier: "premium",
+    instructor: "อาจารย์อั๋น (AIEbookAcademy)",
+    duration_hours: 8.5,
+    episodes_count: 9,
+    free_preview_count: 1,
+    rating: 4.9,
+    review_count: 720,
+    is_bestseller: true,
+  },
+  {
+    id: "c-203",
+    slug: "course-203-micro-tools-chrome-extensions",
+    title: "Course 203: สร้าง Micro-Tools & Chrome Extensions ใช้เองและแจก/ขาย",
+    description: "ให้ Desktop Agent เสกเครื่องมือช่วยงานขนาดเล็ก และปลั๊กอินเบราว์เซอร์สำหรับช่วยงานเฉพาะทางเพื่อสร้างรายได้",
+    category: "Desktop Agents & Vibe Coding",
+    required_tier: "premium",
+    instructor: "อาจารย์อั๋น (AIEbookAcademy)",
+    duration_hours: 5.0,
+    episodes_count: 6,
+    free_preview_count: 1,
+    rating: 4.8,
+    review_count: 290,
+  },
+
+  // หมวด 3: Smart Automations, Hermes & Local AI
+  {
+    id: "c-301",
+    slug: "course-301-local-llm-unleashed",
+    title: "Course 301: Local LLM Unleashed: รัน AI ฟรี ไม่จำกัด ไม่ง้อเน็ต ไม่ง้อ API",
+    description: "ติดตั้ง DeepSeek / Llama ผ่าน Ollama ในคอมพิวเตอร์ตัวเอง ใช้งานข้อมูลลับส่วนตัว ปลอดภัยสูงสุด และฟรี 100% ตลอดชีพ",
+    category: "Automations & Local AI",
+    required_tier: "standard",
+    instructor: "อาจารย์อั๋น (AIEbookAcademy)",
+    duration_hours: 5.5,
+    episodes_count: 6,
+    free_preview_count: 1,
+    rating: 4.9,
+    review_count: 560,
+  },
+  {
+    id: "c-302",
+    slug: "course-302-ai-automation-hermes-grokbot",
+    title: "Course 302: AI Automation with Grokbot & Hermes Agent",
+    description: "สร้างระบบออโตเมชันเฝ้าติดตามข้อมูล ทำคอนเทนต์อัตโนมัติ และรันงาน Background ด้วย Hermes & grokbot",
+    category: "Automations & Local AI",
+    required_tier: "premium",
+    instructor: "อาจารย์อั๋น (AIEbookAcademy)",
+    duration_hours: 6.0,
+    episodes_count: 7,
+    free_preview_count: 1,
+    rating: 4.8,
+    review_count: 310,
+  },
+
+  // หมวด 4: Monetization
+  {
+    id: "c-401",
+    slug: "course-401-lean-ai-monetization",
+    title: "Course 401: Lean AI Monetization: ลงทุนต่ำที่สุด กำไรเต็มเม็ดเต็มหน่วย",
+    description: "แผนการสร้างรายได้จากทักษะ AI แบบ Cost-effective: ขาย Digital Assets, รับทำเว็บด้วย Vibe Coding, รับงานวิดีโอ พร้อม Offer Blueprint",
+    category: "Lean Monetization",
+    required_tier: "standard",
+    instructor: "อาจารย์อั๋น (AIEbookAcademy)",
+    duration_hours: 4.5,
+    episodes_count: 5,
+    free_preview_count: 1,
+    rating: 4.9,
+    review_count: 850,
+    is_bestseller: true,
   },
 ];
 
 export default function CoursesPage() {
-  const [courses, setCourses] = useState<CourseItem[]>(FALLBACK_COURSES);
-  const [isLoading, setIsLoading] = useState(true);
+  const [courses, setCourses] = useState<CourseItem[]>(MASTER_COURSES);
   const [userSubscription, setUserSubscription] = useState<any>(null);
 
   const [searchQuery, setSearchQuery] = useState("");
@@ -138,11 +190,9 @@ export default function CoursesPage() {
 
   const supabase = createClient();
 
-  // ดึงข้อมูลคอร์สสดและสถานะสมาชิกจาก Supabase
   useEffect(() => {
     const fetchCoursesFromSupabase = async () => {
       try {
-        // 1. ดึงสิทธิ์สมาชิกผู้ใช้
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
           const { data: sub } = await supabase
@@ -154,7 +204,6 @@ export default function CoursesPage() {
           setUserSubscription(sub);
         }
 
-        // 2. ดึงคอร์สจากตาราง courses บน Supabase
         const { data: dbCourses, error } = await supabase
           .from("courses")
           .select(`
@@ -174,26 +223,34 @@ export default function CoursesPage() {
           .order("order_number", { ascending: true });
 
         if (!error && dbCourses && dbCourses.length > 0) {
-          // แปลงข้อมูลจาก DB เข้ากับ Interface UI
           const mappedCourses: CourseItem[] = dbCourses.map((c: any) => {
             const episodes = c.course_episodes || [];
             const totalMinutes = episodes.reduce((acc: number, curr: any) => acc + (curr.duration_minutes || 0), 0);
             const freeCount = episodes.filter((ep: any) => ep.is_free_preview).length;
+
+            let cat = "AI Creator & Production";
+            if (c.slug.includes("201") || c.slug.includes("202") || c.slug.includes("203")) {
+              cat = "Desktop Agents & Vibe Coding";
+            } else if (c.slug.includes("301") || c.slug.includes("302")) {
+              cat = "Automations & Local AI";
+            } else if (c.slug.includes("401")) {
+              cat = "Lean Monetization";
+            }
 
             return {
               id: c.id,
               slug: c.slug,
               title: c.title,
               description: c.description || "",
-              category: c.required_tier === "premium" ? "Coding & Agents" : "AI Buffet Core",
+              category: cat,
               required_tier: c.required_tier,
-              instructor: c.instructor || "AI Academy Team",
+              instructor: c.instructor || "อาจารย์อั๋น (AIEbookAcademy)",
               duration_hours: parseFloat((totalMinutes / 60).toFixed(1)) || 5.0,
-              episodes_count: episodes.length || 7,
+              episodes_count: episodes.length || 6,
               free_preview_count: freeCount || 1,
               rating: 4.9,
-              review_count: 350 + Math.floor(Math.random() * 200),
-              is_bestseller: c.required_tier === "premium",
+              review_count: 450 + Math.floor(Math.random() * 200),
+              is_bestseller: c.slug.includes("101") || c.slug.includes("202") || c.slug.includes("401"),
             };
           });
 
@@ -201,8 +258,6 @@ export default function CoursesPage() {
         }
       } catch (err) {
         console.error("Error fetching courses from Supabase:", err);
-      } finally {
-        setIsLoading(false);
       }
     };
 
@@ -211,11 +266,10 @@ export default function CoursesPage() {
 
   const categories = [
     { id: "all", name: "ทุกหมวดหมู่" },
-    { id: "Coding & Agents", name: "Coding & AI Agents" },
-    { id: "Automation", name: "Automation & Workflows" },
-    { id: "Content & Video", name: "Content & Video" },
-    { id: "Design & Art", name: "Design & Midjourney" },
-    { id: "Marketing & Sales", name: "Marketing & Sales" },
+    { id: "AI Creator & Production", name: "1. AI Creator & E-Book" },
+    { id: "Desktop Agents & Vibe Coding", name: "2. Desktop Agents & Vibe Coding" },
+    { id: "Automations & Local AI", name: "3. Local AI & Automations" },
+    { id: "Lean Monetization", name: "4. Lean AI Monetization" },
   ];
 
   const filteredCourses = courses.filter((course) => {
@@ -238,7 +292,7 @@ export default function CoursesPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
 
         {/* =========================================================================
-            HEADER & HERO BANNER
+            HEADER & HERO BANNER (อ้างอิงปรัชญา Maximum Output, Minimum Cost)
         ========================================================================= */}
         <div className="bg-gradient-to-r from-brand-slate via-slate-900 to-slate-800 rounded-3xl p-8 sm:p-10 text-white shadow-xl relative overflow-hidden">
           <div className="absolute right-0 top-0 w-96 h-96 bg-brand-emerald/10 rounded-full blur-3xl pointer-events-none" />
@@ -247,16 +301,16 @@ export default function CoursesPage() {
           <div className="relative z-10 max-w-3xl space-y-4">
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-brand-emerald/20 text-brand-emerald text-xs font-bold uppercase tracking-wider border border-brand-emerald/30">
               <Sparkles className="w-3.5 h-3.5 text-brand-orange" />
-              <span>คลังคอร์สเรียน AI ทั้งหมด</span>
+              <span>หลักสูตรแม่บท aifullfill • สอนโดย อาจารย์อั๋น</span>
             </div>
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight">
-              พัฒนาทักษะแห่งอนาคต <br />
+              Maximum Output, Minimum Cost <br />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-orange via-amber-300 to-brand-emerald">
-                เรียนแบบบุฟเฟต์ เข้าได้ทุกเนื้อหา
+                คลังหลักสูตร AI บุฟเฟต์ ไม่ผลักภาระค่าเครื่องมือ
               </span>
             </h1>
             <p className="text-slate-300 text-sm sm:text-base font-light leading-relaxed">
-              เชื่อมต่อตรงกับฐานข้อมูล Supabase • ไร้ปัญหา N+1 Query • เรียนรู้ตามจังหวะของคุณ
+              เน้นใช้ Desktop Agents (Antigravity / Codex), Open-Source (ComfyUI / Ollama DeepSeek) และระบบฟรี ทำงานจริง สร้างรายได้จริงในคอมพิวเตอร์ของคุณ
             </p>
           </div>
         </div>
@@ -274,7 +328,7 @@ export default function CoursesPage() {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="ค้นหาชื่อคอร์ส, เทคโนโลยี, ผู้สอน..."
+                placeholder="ค้นหาชื่อคอร์ส (101, ComfyUI, Vibe Coding, Local AI)..."
                 className="w-full pl-10 pr-4 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-emerald/30 focus:border-brand-emerald transition-all"
               />
             </div>
@@ -349,7 +403,7 @@ export default function CoursesPage() {
                 </div>
                 <div>
                   <h2 className="text-xl font-extrabold text-brand-slate flex items-center gap-2">
-                    Premium Masterclass & Exclusive
+                    Premium Masterclass & Exclusive (Vibe Coding & Agentic AI)
                     <span className="text-xs px-2 py-0.5 rounded-full bg-brand-orange/15 text-brand-orange font-bold">
                       {premiumCourses.length} คอร์ส
                     </span>
@@ -359,7 +413,7 @@ export default function CoursesPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {premiumCourses.map((course) => (
                 <CourseCard key={course.id} course={course} userSub={userSubscription} />
               ))}
@@ -379,17 +433,17 @@ export default function CoursesPage() {
                 </div>
                 <div>
                   <h2 className="text-xl font-extrabold text-brand-slate flex items-center gap-2">
-                    Standard Buffet Courses
+                    Standard Buffet Courses (Core & Open Source)
                     <span className="text-xs px-2 py-0.5 rounded-full bg-brand-emerald/15 text-brand-emerald-dark font-bold">
                       {standardCourses.length} คอร์ส
                     </span>
                   </h2>
-                  <p className="text-xs text-slate-500">คอร์สพื้นฐานและการประยุกต์ใช้ AI ในการทำงานจริง เรียนได้ไม่จำกัดในแพ็กเกจ Standard</p>
+                  <p className="text-xs text-slate-500">คอร์ส E-Book, ComfyUI, วิดีโอ, Desktop Agents และ Local AI รันฟรีได้ไม่จำกัด</p>
                 </div>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {standardCourses.map((course) => (
                 <CourseCard key={course.id} course={course} userSub={userSubscription} />
               ))}
@@ -403,12 +457,11 @@ export default function CoursesPage() {
 }
 
 // =========================================================================
-// UDEMY-STYLE COURSE CARD COMPONENT (พร้อมการตรวจสิทธิ์ Smart Tier)
+// UDEMY-STYLE COURSE CARD COMPONENT
 // =========================================================================
 function CourseCard({ course, userSub }: { course: CourseItem; userSub: any }) {
   const isPremiumCourse = course.required_tier === "premium";
   
-  // ตรวจสอบสิทธิ์ผู้ใช้
   const hasAccess = userSub
     ? userSub.tier === "premium" || (userSub.tier === "standard" && !isPremiumCourse)
     : false;
@@ -444,7 +497,7 @@ function CourseCard({ course, userSub }: { course: CourseItem; userSub: any }) {
           <span className="flex items-center gap-1 font-medium">
             <Clock className="w-3.5 h-3.5 text-brand-emerald" /> {course.duration_hours} ชม.
           </span>
-          <span>{course.episodes_count} ตอน</span>
+          <span>{course.episodes_count} บทเรียน</span>
         </div>
 
         {/* Visual Cover Placeholder */}
@@ -477,7 +530,7 @@ function CourseCard({ course, userSub }: { course: CourseItem; userSub: any }) {
                 <Star key={i} className="w-3 h-3 fill-current" />
               ))}
             </div>
-            <span className="text-[11px] text-slate-400">({course.review_count})</span>
+            <span className="text-[11px] text-slate-400">({course.review_count} ผู้เรียน)</span>
           </div>
         </div>
 

@@ -1,94 +1,170 @@
 -- ==============================================================================
--- aifullfill.com : Seed Data สำหรับตาราง Courses & Episodes
--- นำไปรันใน SQL Editor ของ Supabase เพื่อเพิ่มคอร์สตัวอย่าง
+-- aifullfill.com : Master Curriculum Seed Data (อ้างอิงจาก D:\aifullfill\curriculum\MASTER_ROADMAP.md)
+-- ผู้สอนหลัก: อาจารย์อั๋น (AIEbookAcademy / ebookcourse)
+-- ปรัชญา: Maximum Output, Minimum Cost | Desktop Agents | Open Source | Core Ecosystems
 -- ==============================================================================
 
--- 1. เพิ่มข้อมูลคอร์สตัวอย่าง
-INSERT INTO public.courses (title, slug, description, instructor, required_tier, content_type, is_published, order_number)
+-- 1. เพิ่ม/อัปเดต 9 คอร์สหลักสำหรับวันเปิดตัว (Day-1 Launch)
+INSERT INTO public.courses (
+  title, 
+  slug, 
+  description, 
+  instructor, 
+  required_tier, 
+  content_type, 
+  is_published, 
+  order_number
+)
 VALUES
+  -- หมวด 1: AI Creator & Visual Production
   (
-    'AI Game Developer: Vibe Coding สร้างเกม 2D/MMO ด้วย AI ใครก็ทำได้',
-    'ai-game-developer',
-    'เจาะลึกการใช้ Claude และ AI Agent เขียนโค้ดเกมตั้งแต่เริ่มต้นจนถึงระบบ Multi-player MMO พร้อมซอร์สโค้ดครบชุด',
-    'AI Academy Team',
-    'premium',
+    'Course 101: AI E-Book & Digital Asset Masterclass (ลายเซ็นอาจารย์อั๋น)',
+    'course-101-ai-ebook-masterclass',
+    'ผลิต E-Book และสื่อดิจิทัลแบบ Full Pipeline ครบวงจรโดยแทบไม่มีต้นทุนเครื่องมือ ออกแบบปก 3D Mockup จัดรูปเล่มพร้อมขายทำเงิน',
+    'อาจารย์อั๋น (AIEbookAcademy)',
+    'standard',
     'course',
     true,
     1
   ),
   (
-    'Claude 3.5 & 3.7 Sonnet Masterclass: รัน Agentic Coding ระดับเซียน',
-    'claude-masterclass',
-    'สั่ง Claude Code และสร้าง MCP Server เช็คสิทธิ์และเชื่อมฐานข้อมูลในระดับโปรดักชัน',
-    'AI Academy Team',
-    'premium',
+    'Course 102: ComfyUI Zero-to-Hero: คุมงานภาพและกราฟิกระดับเทพแบบฟรี 100%',
+    'course-102-comfyui-zero-to-hero',
+    'ปลดแอกค่าสมาชิก Midjourney ด้วย ComfyUI ในเครื่อง คุม Character หน้าตรง คุมแสง Inpainting แก้เฉพาะจุดด้วย Flux & SDXL',
+    'อาจารย์อั๋น (AIEbookAcademy)',
+    'standard',
     'course',
     true,
     2
   ),
   (
-    'n8n Automation Pro Workflows: ดึงข้อมูลอัตโนมัติ ยิงแชท LINE และ CRM',
-    'n8n-automation',
-    'สร้าง Workflow อัตโนมัติช่วยประหยัดเวลาการทำงาน ลดงานซ้ำซาก 90% ด้วยระบบ No-Code + AI',
-    'AI Academy Team',
-    'premium',
+    'Course 103: AI Video Production: Google Flow, Grok Video & Minimax',
+    'course-103-ai-video-production',
+    'ผลิตคลิปไวรัลและคลิปเล่าเรื่องคุณภาพสูง ด้วยต้นทุนที่ถูกที่สุด ผ่าน Google Flow, Grok Video, Minimax (Video/Voice) และ CapCut',
+    'อาจารย์อั๋น (AIEbookAcademy)',
+    'standard',
     'course',
     true,
     3
   ),
+
+  -- หมวด 2: Desktop Agents & Vibe Coding
   (
-    'สร้างช่อง YouTube & TikTok ด้วย AI วิดีโอสั้นปังใน 10 นาที',
-    'ai-content-video',
-    'สูตรลับการใช้ AI คิด Hook, เขียนสคริปต์, ตัดต่อ และสร้างเสียงบรรยายไทยที่สมจริง',
-    'AI Academy Team',
+    'Course 201: Desktop Agent Mastery (Antigravity & Cowork / Codex)',
+    'course-201-desktop-agent-mastery',
+    'ปูพื้นฐานการใช้ Desktop Agent ทำงานแทนมนุษย์ อ่าน-แก้-สร้างไฟล์ในเครื่อง สั่งงานแบบโปรเจกต์เดียวจบ ติดตั้งสภาพแวดล้อมพร้อมใช้',
+    'อาจารย์อั๋น (AIEbookAcademy)',
     'standard',
     'course',
     true,
     4
   ),
   (
-    'Midjourney Mastery: วาดภาพประกอบ ปกหนังสือ โลโก้ และสินค้าให้ขายได้',
-    'midjourney-mastery',
-    'รวมเทคนิคการเขียน Prompt คุมสไตล์ ตัวละครเดิม และการสร้างภาพความละเอียดสูง 4K',
-    'AI Academy Team',
-    'standard',
+    'Course 202: Vibe Coding สร้าง Web Application ด้วย Desktop Agent + Supabase',
+    'course-202-vibe-coding-web-app',
+    'สร้างเว็บพร้อมระบบฐานข้อมูลและระบบล็อกอิน โดยสั่งงานผ่าน Desktop Agent (Antigravity / Codex) แบบ Non-coder ไร้ปัญหา N+1 Query',
+    'อาจารย์อั๋น (AIEbookAcademy)',
+    'premium',
     'course',
     true,
     5
   ),
   (
-    'สร้างบอท LINE OA ปิดการขายอัตโนมัติด้วย ChatGPT API',
-    'line-chatbot-ai',
-    'ประกอบร่างแชทบอทตอบคำถามลูกค้า รับออเดอร์ และสรุปยอดขายลง Google Sheets แบบจับมือทำ',
-    'AI Academy Team',
-    'standard',
+    'Course 203: สร้าง Micro-Tools & Chrome Extensions ใช้เองและแจก/ขาย',
+    'course-203-micro-tools-chrome-extensions',
+    'ให้ Desktop Agent เสกเครื่องมือช่วยงานขนาดเล็ก และปลั๊กอินเบราว์เซอร์สำหรับช่วยงานเฉพาะทางเพื่อสร้างรายได้',
+    'อาจารย์อั๋น (AIEbookAcademy)',
+    'premium',
     'course',
     true,
     6
-  )
-ON CONFLICT (slug) DO NOTHING;
+  ),
 
--- 2. เพิ่มตอนเรียนตัวอย่างสำหรับคอร์ส AI Game Developer
+  -- หมวด 3: Smart Automations, Hermes & Local AI
+  (
+    'Course 301: Local LLM Unleashed: รัน AI ฟรี ไม่จำกัด ไม่ง้อเน็ต ไม่ง้อ API',
+    'course-301-local-llm-unleashed',
+    'ติดตั้ง DeepSeek / Llama ผ่าน Ollama ในคอมพิวเตอร์ตัวเอง ใช้งานข้อมูลลับส่วนตัว ปลอดภัยสูงสุด และฟรี 100% ตลอดชีพ',
+    'อาจารย์อั๋น (AIEbookAcademy)',
+    'standard',
+    'course',
+    true,
+    7
+  ),
+  (
+    'Course 302: AI Automation with Grokbot & Hermes Agent',
+    'course-302-ai-automation-hermes-grokbot',
+    'สร้างระบบออโตเมชันเฝ้าติดตามข้อมูล ทำคอนเทนต์อัตโนมัติ และรันงาน Background ด้วย Hermes & grokbot',
+    'อาจารย์อั๋น (AIEbookAcademy)',
+    'premium',
+    'course',
+    true,
+    8
+  ),
+
+  -- หมวด 4: Monetization
+  (
+    'Course 401: Lean AI Monetization: ลงทุนต่ำที่สุด กำไรเต็มเม็ดเต็มหน่วย',
+    'course-401-lean-ai-monetization',
+    'แผนการสร้างรายได้จากทักษะ AI แบบ Cost-effective: ขาย Digital Assets, รับทำเว็บด้วย Vibe Coding, รับงานวิดีโอ พร้อม Offer Blueprint',
+    'อาจารย์อั๋น (AIEbookAcademy)',
+    'standard',
+    'course',
+    true,
+    9
+  )
+ON CONFLICT (slug) DO UPDATE SET
+  title = EXCLUDED.title,
+  description = EXCLUDED.description,
+  instructor = EXCLUDED.instructor,
+  required_tier = EXCLUDED.required_tier,
+  order_number = EXCLUDED.order_number,
+  is_published = EXCLUDED.is_published;
+
+-- 2. เพิ่มตอนเรียนตัวอย่างและไฟล์แนบสำหรับ Course 101, 102, 201, 202
 DO $$
 DECLARE
-  v_course_id UUID;
+  v_c101 UUID;
+  v_c102 UUID;
+  v_c201 UUID;
+  v_c202 UUID;
 BEGIN
-  SELECT id INTO v_course_id FROM public.courses WHERE slug = 'ai-game-developer' LIMIT 1;
+  SELECT id INTO v_c101 FROM public.courses WHERE slug = 'course-101-ai-ebook-masterclass' LIMIT 1;
+  SELECT id INTO v_c102 FROM public.courses WHERE slug = 'course-102-comfyui-zero-to-hero' LIMIT 1;
+  SELECT id INTO v_c201 FROM public.courses WHERE slug = 'course-201-desktop-agent-mastery' LIMIT 1;
+  SELECT id INTO v_c202 FROM public.courses WHERE slug = 'course-202-vibe-coding-web-app' LIMIT 1;
 
-  IF v_course_id IS NOT NULL THEN
+  -- ตอนเรียน Course 101
+  IF v_c101 IS NOT NULL THEN
+    DELETE FROM public.course_episodes WHERE course_id = v_c101;
     INSERT INTO public.course_episodes (course_id, title, video_url, duration_minutes, is_free_preview, order_number)
     VALUES
-      (v_course_id, 'EP.1 AI Game Developer ทฤษฎีและภาพรวม', 'https://www.youtube.com/embed/dQw4w9WgXcQ', 30, true, 1),
-      (v_course_id, 'EP.2 การติดตั้ง Environment & Claude Code', 'https://www.youtube.com/embed/dQw4w9WgXcQ', 7, false, 2),
-      (v_course_id, 'EP.3 Workshop 1 ออกแบบเกมแพลตฟอร์ม 2D', 'https://www.youtube.com/embed/dQw4w9WgXcQ', 60, false, 3),
-      (v_course_id, 'EP.4 Workshop 2 ออกแบบกราฟิก Pixel Art ด้วย AI', 'https://www.youtube.com/embed/dQw4w9WgXcQ', 15, false, 4),
-      (v_course_id, 'EP.5 Workshop 3 ระบบ Clicker / Idle Game', 'https://www.youtube.com/embed/dQw4w9WgXcQ', 37, false, 5),
-      (v_course_id, 'EP.6 Workshop 4 เชื่อมระบบ MMO Multi-player', 'https://www.youtube.com/embed/dQw4w9WgXcQ', 145, false, 6),
-      (v_course_id, 'EP.7 สรุปงานและแนวทางการ Deploy สู่เว็บ', 'https://www.youtube.com/embed/dQw4w9WgXcQ', 9, false, 7);
+      (v_c101, 'EP.1 ปรัชญา Lean AI: ผลิต E-Book คุณภาพสูงในต้นทุน 0 บาท', 'https://www.youtube.com/embed/dQw4w9WgXcQ', 25, true, 1),
+      (v_c101, 'EP.2 วางโครงสร้างสารบัญและ Mindmap เนื้อหาด้วย Claude & ChatGPT', 'https://www.youtube.com/embed/dQw4w9WgXcQ', 35, false, 2),
+      (v_c101, 'EP.3 การเขียนเนื้อหาเจาะลึกและจัดรูปเล่มอัตโนมัติด้วย Desktop Agent', 'https://www.youtube.com/embed/dQw4w9WgXcQ', 45, false, 3),
+      (v_c101, 'EP.4 ทำปก E-Book 3D Mockup และภาพประกอบด้วย ComfyUI ฟรี', 'https://www.youtube.com/embed/dQw4w9WgXcQ', 30, false, 4),
+      (v_c101, 'EP.5 การส่งออกไฟล์ ePub, PDF และวางระบบขายบนแพลตฟอร์มดิจิทัล', 'https://www.youtube.com/embed/dQw4w9WgXcQ', 20, false, 5);
 
-    -- เพิ่มไฟล์แนบตัวอย่าง
+    DELETE FROM public.course_attachments WHERE course_id = v_c101;
     INSERT INTO public.course_attachments (course_id, title, file_url, file_type, file_size, order_number)
     VALUES
-      (v_course_id, 'ซอร์สโค้ดเกม AI Game Developer (Complete).zip', 'https://example.com/source-code.zip', 'zip', '24.5 MB', 1);
+      (v_c101, 'Template E-Book สำเร็จรูปพร้อมขาย + System Prompts.zip', 'https://example.com/ebook-templates.zip', 'zip', '12.4 MB', 1);
+  END IF;
+
+  -- ตอนเรียน Course 202 (Vibe Coding)
+  IF v_c202 IS NOT NULL THEN
+    DELETE FROM public.course_episodes WHERE course_id = v_c202;
+    INSERT INTO public.course_episodes (course_id, title, video_url, duration_minutes, is_free_preview, order_number)
+    VALUES
+      (v_c202, 'EP.1 แนวคิด Vibe Coding: สั่ง Desktop Agent สร้าง Web App จากภาษาพูด', 'https://www.youtube.com/embed/dQw4w9WgXcQ', 30, true, 1),
+      (v_c202, 'EP.2 การติดตั้ง Next.js, Tailwind CSS และ Supabase Free Tier', 'https://www.youtube.com/embed/dQw4w9WgXcQ', 20, false, 2),
+      (v_c202, 'EP.3 ออกแบบฐานข้อมูลไร้ N+1 Query และตั้งค่า Row Level Security', 'https://www.youtube.com/embed/dQw4w9WgXcQ', 40, false, 3),
+      (v_c202, 'EP.4 สั่ง Desktop Agent โค้ดหน้าบ้านและระบบสมาชิกอัตโนมัติ', 'https://www.youtube.com/embed/dQw4w9WgXcQ', 55, false, 4),
+      (v_c202, 'EP.5 Deploy ขึ้น Vercel และเชื่อม Custom Domain ใช้งานจริง', 'https://www.youtube.com/embed/dQw4w9WgXcQ', 25, false, 5);
+
+    DELETE FROM public.course_attachments WHERE course_id = v_c202;
+    INSERT INTO public.course_attachments (course_id, title, file_url, file_type, file_size, order_number)
+    VALUES
+      (v_c202, 'Starter Kit Web App Template (Next.js + Supabase).zip', 'https://example.com/vibe-starter.zip', 'zip', '8.9 MB', 1);
   END IF;
 END $$;
