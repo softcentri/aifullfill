@@ -32,6 +32,9 @@ function LoginForm() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
+  const [showResend, setShowResend] = useState(false);
+  const [resending, setResending] = useState(false);
+
   const supabase = createClient();
 
   // ดำเนินการเข้าสู่ระบบ
@@ -40,6 +43,7 @@ function LoginForm() {
     setIsLoading(true);
     setErrorMessage(null);
     setSuccessMessage(null);
+    setShowResend(false);
 
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
@@ -51,7 +55,8 @@ function LoginForm() {
         if (error.message.includes("Invalid login credentials")) {
           setErrorMessage("อีเมลหรือรหัสผ่านไม่ถูกต้อง กรุณาตรวจสอบอีกครั้ง");
         } else if (error.message.includes("Email not confirmed")) {
-          setErrorMessage("กรุณายืนยันอีเมลของคุณก่อนเข้าสู่ระบบ (ตรวจสอบในกล่องจดหมาย)");
+          setErrorMessage("บัญชีนี้ยังไม่ได้รับการยืนยันอีเมล กรุณากดลิงก์ในอีเมลของคุณ หรือกดส่งอีเมลยืนยันอีกครั้ง");
+          setShowResend(true);
         } else {
           setErrorMessage(error.message);
         }
@@ -60,12 +65,43 @@ function LoginForm() {
       }
 
       if (data.session) {
+        setSuccessMessage("เข้าสู่ระบบสำเร็จ! กำลังนำทาง...");
         router.push(nextUrl);
         router.refresh();
+      } else {
+        setIsLoading(false);
       }
     } catch (err: any) {
       setErrorMessage("เกิดข้อผิดพลาดในการเชื่อมต่อ กรุณาลองใหม่อีกครั้ง");
       setIsLoading(false);
+    }
+  };
+
+  // ดำเนินการส่งอีเมลยืนยันอีกครั้ง
+  const handleResendConfirmation = async () => {
+    if (!email) {
+      setErrorMessage("กรุณาระบุอีเมลเพื่อรับลิงก์ยืนยัน");
+      return;
+    }
+    setResending(true);
+    setErrorMessage(null);
+    try {
+      const { error } = await supabase.auth.resend({
+        type: "signup",
+        email: email.trim(),
+        options: {
+          emailRedirectTo: `${window.location.origin}/auth/callback?next=${nextUrl}`,
+        },
+      });
+      if (error) {
+        setErrorMessage(`ไม่สามารถส่งอีเมลได้: ${error.message}`);
+      } else {
+        setSuccessMessage("ส่งอีเมลยืนยันตัวตนใหม่อีกครั้งเรียบร้อยแล้ว! กรุณาตรวจสอบใน Inbox หรือโฟลเดอร์ Junk/Spam");
+      }
+    } catch (err: any) {
+      setErrorMessage("เกิดข้อผิดพลาดในการส่งอีเมล กรุณาลองใหม่อีกครั้ง");
+    } finally {
+      setResending(false);
     }
   };
 
@@ -75,6 +111,7 @@ function LoginForm() {
     setIsLoading(true);
     setErrorMessage(null);
     setSuccessMessage(null);
+    setShowResend(false);
 
     if (password.length < 6) {
       setErrorMessage("รหัสผ่านต้องมีความยาวอย่างน้อย 6 ตัวอักษร");
@@ -83,7 +120,8 @@ function LoginForm() {
     }
 
     try {
-      const { data, error } = await supabase.auth.signUp({
+      // ป้องกันการค้างด้วย Timeout 15 วินาที
+      const signUpPromise = supabase.auth.signUp({
         email: email.trim(),
         password,
         options: {
@@ -94,9 +132,16 @@ function LoginForm() {
         },
       });
 
+      const timeoutPromise = new Promise<{ data: any; error: any }>((_, reject) =>
+        setTimeout(() => reject(new Error("หมดเวลาเชื่อมต่อกับเซิร์ฟเวอร์ (Timeout) กรุณาลองใหม่อีกครั้ง")), 15000)
+      );
+
+      const { data, error } = await Promise.race([signUpPromise, timeoutPromise]);
+
       if (error) {
         if (error.message.includes("already registered")) {
-          setErrorMessage("อีเมลนี้ถูกลงทะเบียนในระบบแล้ว กรุณาเลือกเข้าสู่ระบบ");
+          setErrorMessage("อีเมลนี้ถูกลงทะเบียนในระบบแล้ว กรุณาเลือกแท็บ 'เข้าสู่ระบบ'");
+          setMode("signin");
         } else {
           setErrorMessage(error.message);
         }
@@ -104,20 +149,31 @@ function LoginForm() {
         return;
       }
 
+      // ใน Supabase ถ้าอีเมลมีอยู่แล้วและ Confirm email เปิดอยู่ Identities จะเป็นอาเรย์ว่าง
+      if (data.user && Array.isArray(data.user.identities) && data.user.identities.length === 0) {
+        setErrorMessage("อีเมลนี้เคยลงทะเบียนไว้ในระบบแล้ว กรุณาเลือกแท็บ 'เข้าสู่ระบบ' หรือกดขอส่งอีเมลยืนยันใหม่");
+        setShowResend(true);
+        setIsLoading(false);
+        return;
+      }
+
       if (data.user && data.session) {
+        // กรณี Confirm Email ปิดอยู่ (Instant Login)
         setSuccessMessage("สมัครสมาชิกสำเร็จ! กำลังนำคุณเข้าสู่แดชบอร์ด...");
         setTimeout(() => {
           router.push(nextUrl);
           router.refresh();
-        }, 1000);
+        }, 800);
       } else {
+        // กรณี Supabase บังคับ Confirm Email
         setSuccessMessage(
-          "สมัครสมาชิกสำเร็จ! เราได้ส่งลิงก์ยืนยันตัวตนไปยังอีเมลของคุณแล้ว กรุณากดลิงก์ในอีเมลเพื่อเริ่มใช้งาน"
+          "สมัครสมาชิกสำเร็จ! เราได้ส่งลิงก์ยืนยันตัวตนไปยังอีเมลของคุณแล้ว กรุณากดลิงก์ในอีเมลเพื่อเปิดใช้งานบัญชี หรือตรวจในโฟลเดอร์ Junk/Spam"
         );
+        setShowResend(true);
         setIsLoading(false);
       }
     } catch (err: any) {
-      setErrorMessage("เกิดข้อผิดพลาดในการสมัครสมาชิก กรุณาลองใหม่อีกครั้ง");
+      setErrorMessage(err.message || "เกิดข้อผิดพลาดในการสมัครสมาชิก กรุณาลองใหม่อีกครั้ง");
       setIsLoading(false);
     }
   };
@@ -202,16 +258,40 @@ function LoginForm() {
 
         {/* Alert Error / Success */}
         {errorMessage && (
-          <div className="p-3.5 rounded-2xl bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-start gap-2.5 animate-in fade-in">
-            <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
-            <span>{errorMessage}</span>
+          <div className="p-3.5 rounded-2xl bg-rose-50 border border-rose-200 text-rose-700 text-xs flex flex-col gap-2 animate-in fade-in">
+            <div className="flex items-start gap-2.5">
+              <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+              <span>{errorMessage}</span>
+            </div>
+            {showResend && (
+              <button
+                type="button"
+                onClick={handleResendConfirmation}
+                disabled={resending}
+                className="self-start text-[11px] font-bold text-rose-800 underline hover:text-rose-950 disabled:opacity-50"
+              >
+                {resending ? "กำลังส่งอีเมล..." : "คลิกที่นี่เพื่อส่งอีเมลยืนยันตัวตนใหม่อีกครั้ง"}
+              </button>
+            )}
           </div>
         )}
 
         {successMessage && (
-          <div className="p-3.5 rounded-2xl bg-brand-emerald/10 border border-brand-emerald/30 text-brand-emerald-dark text-xs flex items-start gap-2.5 animate-in fade-in">
-            <CheckCircle2 className="w-4 h-4 flex-shrink-0 mt-0.5 text-brand-emerald" />
-            <span>{successMessage}</span>
+          <div className="p-3.5 rounded-2xl bg-brand-emerald/10 border border-brand-emerald/30 text-brand-emerald-dark text-xs flex flex-col gap-2 animate-in fade-in">
+            <div className="flex items-start gap-2.5">
+              <CheckCircle2 className="w-4 h-4 flex-shrink-0 mt-0.5 text-brand-emerald" />
+              <span>{successMessage}</span>
+            </div>
+            {showResend && (
+              <button
+                type="button"
+                onClick={handleResendConfirmation}
+                disabled={resending}
+                className="self-start text-[11px] font-bold text-brand-emerald underline hover:text-emerald-900 disabled:opacity-50"
+              >
+                {resending ? "กำลังส่ง..." : "ยังไม่ได้รับอีเมล? กดส่งใหม่อีกครั้ง"}
+              </button>
+            )}
           </div>
         )}
 
@@ -318,7 +398,10 @@ function LoginForm() {
             className="w-full py-3 px-4 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-brand-orange to-amber-500 hover:from-brand-orange-hover hover:to-amber-600 transition-all flex items-center justify-center gap-2 shadow-lg shadow-brand-orange/25 disabled:opacity-50"
           >
             {isLoading ? (
-              <span>กำลังประมวลผล...</span>
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                <span>กำลังประมวลผล...</span>
+              </>
             ) : (
               <>
                 <span>{mode === "signin" ? "เข้าสู่ระบบทันที" : "สร้างบัญชีผู้ใช้ใหม่"}</span>
