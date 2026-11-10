@@ -15,7 +15,8 @@ import {
   User as UserIcon, 
   Menu, 
   X, 
-  LogOut 
+  LogOut,
+  ShieldCheck 
 } from "lucide-react";
 
 export function Navbar() {
@@ -162,6 +163,17 @@ export function Navbar() {
             {currentUser ? (
               // กรณีล็อกอินแล้ว
               <div className="flex items-center gap-2">
+                {userProfile?.role === "admin" && (
+                  <Link
+                    href="/admin"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-black text-amber-900 bg-amber-100 hover:bg-amber-200 border border-amber-300 rounded-full transition-all shadow-sm"
+                    title="ไปที่แผงควบคุมระบบ (Admin Panel)"
+                  >
+                    <ShieldCheck className="w-3.5 h-3.5 text-amber-700" />
+                    <span>Admin</span>
+                  </Link>
+                )}
+
                 <Link
                   href="/dashboard"
                   className="flex items-center gap-2 p-1.5 sm:px-3 sm:py-1.5 rounded-full bg-slate-100 hover:bg-slate-200 transition-colors text-xs font-bold text-brand-slate"
@@ -262,6 +274,16 @@ export function Navbar() {
 
           {currentUser ? (
             <div className="pt-2 border-t border-slate-100 space-y-1">
+              {userProfile?.role === "admin" && (
+                <Link
+                  href="/admin"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-amber-900 font-extrabold text-sm bg-amber-100/80 border border-amber-300"
+                >
+                  <ShieldCheck className="w-4 h-4 text-amber-700" />
+                  แผงควบคุมผู้ดูแล (Admin Panel)
+                </Link>
+              )}
               <Link
                 href="/dashboard"
                 onClick={() => setMobileMenuOpen(false)}
