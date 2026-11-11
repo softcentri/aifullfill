@@ -24,7 +24,7 @@ export async function GET() {
     // 2. Fetch payouts
     const { data: payouts, error: payError } = await supabase
       .from("affiliate_payouts")
-      .select("*, affiliates:affiliate_id(code, bank_name, bank_account_no, bank_account_name, profiles:user_id(full_name, email))")
+      .select("*, affiliates:affiliate_id(affiliate_code, bank_name, bank_account_number, bank_account_name, profiles:user_id(full_name, email))")
       .order("created_at", { ascending: false });
 
     if (payError) throw payError;
@@ -32,7 +32,7 @@ export async function GET() {
     // 3. Fetch recent commissions
     const { data: commissions, error: commError } = await supabase
       .from("affiliate_commissions")
-      .select("*, affiliates:affiliate_id(code)")
+      .select("*, affiliates:affiliate_id(affiliate_code)")
       .order("created_at", { ascending: false })
       .limit(50);
 
@@ -106,13 +106,13 @@ export async function PATCH(request: Request) {
         // Fallback if RPC doesn't exist
         const { data: aff } = await supabase
           .from("affiliates")
-          .select("unpaid_balance")
+          .select("current_balance")
           .eq("id", payout.affiliate_id)
           .single();
         if (aff) {
           await supabase
             .from("affiliates")
-            .update({ unpaid_balance: (aff.unpaid_balance || 0) + payout.amount })
+            .update({ current_balance: (parseFloat(aff.current_balance) || 0) + parseFloat(payout.amount) })
             .eq("id", payout.affiliate_id);
         }
       }

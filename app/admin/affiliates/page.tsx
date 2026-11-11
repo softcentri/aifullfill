@@ -24,14 +24,14 @@ import {
 interface Affiliate {
   id: string;
   user_id: string;
-  code: string;
-  custom_coupon: string | null;
+  affiliate_code: string;
+  custom_coupon_code: string | null;
   commission_rate: number;
-  total_earnings: number;
-  unpaid_balance: number;
-  paid_balance: number;
+  total_earned: number;
+  current_balance: number;
+  tier: string;
   bank_name: string | null;
-  bank_account_no: string | null;
+  bank_account_number: string | null;
   bank_account_name: string | null;
   is_active: boolean;
   created_at: string;
@@ -46,17 +46,15 @@ interface Payout {
   affiliate_id: string;
   amount: number;
   status: "pending" | "approved" | "paid" | "rejected";
-  bank_info: {
-    bank: string;
-    account_no: string;
-    account_name: string;
-  };
-  notes: string | null;
+  bank_name: string;
+  bank_account_number: string;
+  bank_account_name: string;
+  note: string | null;
   slip_url: string | null;
   created_at: string;
   processed_at: string | null;
   affiliates?: {
-    code: string;
+    affiliate_code: string;
     profiles?: {
       full_name: string;
       email: string;
@@ -143,7 +141,7 @@ export default function AdminAffiliatesPage() {
     const query = searchQuery.toLowerCase();
     const partnerName = p.affiliates?.profiles?.full_name?.toLowerCase() || "";
     const partnerEmail = p.affiliates?.profiles?.email?.toLowerCase() || "";
-    const code = p.affiliates?.code?.toLowerCase() || "";
+    const code = p.affiliates?.affiliate_code?.toLowerCase() || "";
     return matchesStatus && (partnerName.includes(query) || partnerEmail.includes(query) || code.includes(query));
   });
 
@@ -151,7 +149,7 @@ export default function AdminAffiliatesPage() {
     const query = searchQuery.toLowerCase();
     const name = a.profiles?.full_name?.toLowerCase() || "";
     const email = a.profiles?.email?.toLowerCase() || "";
-    const code = a.code?.toLowerCase() || "";
+    const code = a.affiliate_code?.toLowerCase() || "";
     return name.includes(query) || email.includes(query) || code.includes(query);
   });
 
@@ -325,7 +323,7 @@ export default function AdminAffiliatesPage() {
                           {payout.affiliates?.profiles?.full_name || "ไม่ระบุชื่อ"}
                         </div>
                         <div className="text-xs text-slate-400">
-                          {payout.affiliates?.profiles?.email} (รหัส: {payout.affiliates?.code})
+                          {payout.affiliates?.profiles?.email} (รหัส: {payout.affiliates?.affiliate_code})
                         </div>
                       </td>
                       <td className="py-3.5 px-4">
@@ -335,10 +333,10 @@ export default function AdminAffiliatesPage() {
                       </td>
                       <td className="py-3.5 px-4 text-xs">
                         <div className="font-semibold text-slate-200">
-                          {payout.bank_info?.bank || "-"}
+                          {payout.bank_name || "-"}
                         </div>
                         <div className="text-slate-400">
-                          {payout.bank_info?.account_no} ({payout.bank_info?.account_name})
+                          {payout.bank_account_number} ({payout.bank_account_name})
                         </div>
                       </td>
                       <td className="py-3.5 px-4">
@@ -429,25 +427,25 @@ export default function AdminAffiliatesPage() {
                         <div className="text-xs text-slate-400">{aff.profiles?.email}</div>
                       </td>
                       <td className="py-3.5 px-4 text-xs font-mono">
-                        <div className="text-brand-orange font-bold">?ref={aff.code}</div>
-                        {aff.custom_coupon && (
-                          <div className="text-slate-400">คูปอง: {aff.custom_coupon}</div>
+                        <div className="text-brand-orange font-bold">?ref={aff.affiliate_code}</div>
+                        {aff.custom_coupon_code && (
+                          <div className="text-slate-400">คูปอง: {aff.custom_coupon_code}</div>
                         )}
                       </td>
                       <td className="py-3.5 px-4 font-bold text-white text-xs">
                         {Math.round(aff.commission_rate * 100)}%
                       </td>
                       <td className="py-3.5 px-4 font-semibold text-slate-200 text-xs">
-                        ฿{Number(aff.total_earnings || 0).toLocaleString()}
+                        ฿{Number(aff.total_earned || 0).toLocaleString()}
                       </td>
                       <td className="py-3.5 px-4 font-bold text-brand-emerald text-xs">
-                        ฿{Number(aff.unpaid_balance || 0).toLocaleString()}
+                        ฿{Number(aff.current_balance || 0).toLocaleString()}
                       </td>
                       <td className="py-3.5 px-4 text-xs text-slate-400">
                         {aff.bank_name ? (
                           <>
                             <div className="text-slate-200 font-medium">{aff.bank_name}</div>
-                            <div>{aff.bank_account_no}</div>
+                            <div>{aff.bank_account_number}</div>
                           </>
                         ) : (
                           <span className="text-slate-600">ยังไม่ระบุ</span>
@@ -514,7 +512,7 @@ export default function AdminAffiliatesPage() {
                         })}
                       </td>
                       <td className="py-3.5 px-4 font-mono font-bold text-xs text-brand-orange">
-                        {comm.affiliates?.code || "-"}
+                        {comm.affiliates?.affiliate_code || "-"}
                       </td>
                       <td className="py-3.5 px-4 text-xs font-semibold text-slate-300">
                         ฿{Number(comm.order_amount).toLocaleString()}
@@ -575,19 +573,19 @@ export default function AdminAffiliatesPage() {
                 <div className="flex justify-between">
                   <span className="text-slate-400">ธนาคาร:</span>
                   <span className="font-semibold text-white">
-                    {selectedPayout.bank_info?.bank}
+                    {selectedPayout.bank_name}
                   </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-slate-400">เลขที่บัญชี:</span>
                   <span className="font-mono font-bold text-brand-orange">
-                    {selectedPayout.bank_info?.account_no}
+                    {selectedPayout.bank_account_number}
                   </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-slate-400">ชื่อบัญชี:</span>
                   <span className="font-semibold text-white">
-                    {selectedPayout.bank_info?.account_name}
+                    {selectedPayout.bank_account_name}
                   </span>
                 </div>
               </div>
