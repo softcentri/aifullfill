@@ -26,6 +26,12 @@ yarn-error.log*
 # local env files
 .env*.local
 
+# agents & local tool harnesses
+.agent/
+.agents/
+.gemini/
+.codex/
+
 # vercel
 .vercel
 

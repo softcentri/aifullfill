@@ -2,18 +2,50 @@ import { NextResponse } from "next/server";
 import { verifyAdmin } from "@/utils/supabase/admin-auth";
 
 // GET: ดึงรายการคอร์สทั้งหมด (รวม Draft และ Published)
-export async function GET() {
+export async function GET(request: Request) {
   const auth = await verifyAdmin();
   if (!auth.isAdmin) {
     return NextResponse.json({ error: auth.error }, { status: 403 });
   }
 
   const { supabase } = auth;
+  const { searchParams } = new URL(request.url);
+  const courseId = searchParams.get("id");
 
   try {
+    if (courseId) {
+      // ดึงคอร์สเดี่ยวพร้อมตอนเรียนและไฟล์แนบ
+      const { data: course, error: courseError } = await supabase
+        .from("courses")
+        .select("*")
+        .eq("id", courseId)
+        .single();
+
+      if (courseError) throw courseError;
+
+      const { data: episodes } = await supabase
+        .from("course_episodes")
+        .select("*")
+        .eq("course_id", courseId)
+        .order("order_number", { ascending: true });
+
+      const { data: attachments } = await supabase
+        .from("course_attachments")
+        .select("*")
+        .eq("course_id", courseId)
+        .order("order_number", { ascending: true });
+
+      return NextResponse.json({ course, episodes: episodes || [], attachments: attachments || [] });
+    }
+
+    // ดึงรายการคอร์สทั้งหมดพร้อมนับจำนวนตอนเรียน
     const { data: courses, error } = await supabase
       .from("courses")
-      .select("*")
+      .select(`
+        *,
+        course_episodes (count),
+        course_attachments (count)
+      `)
       .order("order_number", { ascending: true })
       .order("created_at", { ascending: false });
 
@@ -45,6 +77,7 @@ export async function POST(request: Request) {
       thumbnail_url,
       instructor,
       content_type,
+      category,
       required_tier,
       github_repo_url,
       demo_url,
@@ -56,47 +89,42 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "ต้องระบุชื่อคอร์ส (title) และ slug" }, { status: 400 });
     }
 
+    const payload = {
+      title,
+      slug,
+      description: description || "",
+      thumbnail_url: thumbnail_url || null,
+      instructor: instructor || "AI Academy",
+      content_type: content_type || "course",
+      category: category || "AI & Vibe Coding",
+      required_tier: required_tier || "standard",
+      github_repo_url: github_repo_url || null,
+      demo_url: demo_url || null,
+      is_published: is_published ?? true,
+      order_number: parseInt(order_number || "0", 10),
+    };
+
     if (id) {
       // Update
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from("courses")
-        .update({
-          title,
-          slug,
-          description: description || "",
-          thumbnail_url: thumbnail_url || null,
-          instructor: instructor || "AI Academy",
-          content_type: content_type || "course",
-          required_tier: required_tier || "standard",
-          github_repo_url: github_repo_url || null,
-          demo_url: demo_url || null,
-          is_published: is_published ?? true,
-          order_number: parseInt(order_number || "0", 10),
-        })
-        .eq("id", id);
+        .update(payload)
+        .eq("id", id)
+        .select()
+        .single();
 
       if (error) throw error;
-      return NextResponse.json({ success: true, message: "อัปเดตคอร์สเรียนสำเร็จ" });
+      return NextResponse.json({ success: true, message: "อัปเดตคอร์สเรียนสำเร็จ", course: data });
     } else {
       // Insert
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from("courses")
-        .insert({
-          title,
-          slug,
-          description: description || "",
-          thumbnail_url: thumbnail_url || null,
-          instructor: instructor || "AI Academy",
-          content_type: content_type || "course",
-          required_tier: required_tier || "standard",
-          github_repo_url: github_repo_url || null,
-          demo_url: demo_url || null,
-          is_published: is_published ?? true,
-          order_number: parseInt(order_number || "0", 10),
-        });
+        .insert(payload)
+        .select()
+        .single();
 
       if (error) throw error;
-      return NextResponse.json({ success: true, message: "สร้างคอร์สเรียนใหม่สำเร็จ" });
+      return NextResponse.json({ success: true, message: "สร้างคอร์สเรียนใหม่สำเร็จ", course: data });
     }
   } catch (err: any) {
     console.error("Admin Courses POST Error:", err);

@@ -23,7 +23,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="th" className={promptFont.variable}>
-      <body className="min-h-screen flex flex-col font-sans bg-brand-off-white text-brand-slate antialiased">
+      <body className="min-h-screen flex flex-col font-sans bg-brand-slate text-slate-100 antialiased selection:bg-brand-orange/30 selection:text-white">
         <Navbar />
         <main className="flex-1">
           {children}

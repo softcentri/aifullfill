@@ -23,8 +23,18 @@ import {
   ExternalLink,
   Layers,
   ArrowLeft,
-  Loader2
+  Loader2,
+  Copy,
+  Check
 } from "lucide-react";
+import { VideoPlayer } from "@/components/VideoPlayer";
+
+interface PromptItem {
+  id: string;
+  title: string;
+  prompt: string;
+  description?: string;
+}
 
 interface Episode {
   id: string;
@@ -34,6 +44,8 @@ interface Episode {
   videoUrl: string;
   isFreePreview: boolean;
   section: string;
+  contentHtml?: string;
+  prompts?: PromptItem[];
 }
 
 interface Attachment {
@@ -44,8 +56,13 @@ interface Attachment {
   downloadUrl: string;
 }
 
+interface Section {
+  name: string;
+  episodes: Episode[];
+}
+
 // ข้อมูลจำลองสำรองกรณีคอร์สยังไม่ถูก Seed ใน DB
-const FALLBACK_COURSE_SECTIONS = [
+const FALLBACK_COURSE_SECTIONS: Section[] = [
   {
     name: "ทฤษฎีและการเตรียมเครื่องมือ",
     episodes: [
@@ -54,18 +71,29 @@ const FALLBACK_COURSE_SECTIONS = [
         order: 1,
         title: "EP.1 AI Game Developer ทฤษฎีและแนวคิด Vibe Coding",
         duration: "30 นาที",
-        videoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=0",
+        videoUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
         isFreePreview: true,
         section: "ทฤษฎีและการเตรียมเครื่องมือ",
+        contentHtml: "<h3>ภาพรวมบทเรียน</h3><p>ในบทนี้เราจะมาเจาะลึกแนวคิด Vibe Coding และเตรียมเครื่องมือสำหรับสร้างเกมด้วย AI</p><ul><li>หลักการให้ AI เป็น Copilot ในการเขียน Game Logic</li><li>การกำหนด Architecture ให้ไม่เกิดหนี้ทางเทคนิค (Technical Debt)</li><li>การเตรียม Assets และ Sprite ฟรี</li></ul>",
+        prompts: [
+          {
+            id: "p-fallback-1",
+            title: "Prompt ออกแบบ Game Design Document (GDD)",
+            prompt: "คุณคือนักออกแบบเกมอาวุโส ช่วยร่าง Game Design Document สำหรับเกม 2D Platformer โดยเน้น Core Mechanics, Progression System, และ Sound Design...",
+            description: "ใช้ป้อนให้ Claude หรือ ChatGPT เพื่อวางกรอบก่อนเริ่มเขียนโค้ด"
+          }
+        ]
       },
       {
         id: "ep-2",
         order: 2,
         title: "Ep.2 การติดตั้ง Environment, Claude Code และ Game Engine",
         duration: "7 นาที",
-        videoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=0",
+        videoUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
         isFreePreview: false,
         section: "ทฤษฎีและการเตรียมเครื่องมือ",
+        contentHtml: "<p>ขั้นตอนการติดตั้ง Node.js, Vite, TypeScript และเชื่อมต่อ Antigravity / Claude Code เข้ากับ Workspace</p>",
+        prompts: []
       },
     ],
   },
@@ -77,43 +105,7 @@ const FALLBACK_COURSE_SECTIONS = [
         order: 3,
         title: "Ep.3 Workshop 1 ออกแบบเกมแพลตฟอร์ม 2D ด้วย AI",
         duration: "1 ชม. 0 น.",
-        videoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=0",
-        isFreePreview: false,
-        section: "Workshop สร้างเกมจริง",
-      },
-      {
-        id: "ep-4",
-        order: 4,
-        title: "Ep.4 Workshop 2 ออกแบบกราฟิก Pixel Art ตัวละครและฉาก",
-        duration: "15 นาที",
-        videoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=0",
-        isFreePreview: false,
-        section: "Workshop สร้างเกมจริง",
-      },
-      {
-        id: "ep-5",
-        order: 5,
-        title: "Ep.5 Workshop 3 ระบบเกม Clicker / Idle และระบบ Inventory",
-        duration: "37 นาที",
-        videoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=0",
-        isFreePreview: false,
-        section: "Workshop สร้างเกมจริง",
-      },
-      {
-        id: "ep-6",
-        order: 6,
-        title: "Ep.6 Workshop 4 พัฒนาระบบ MMO Multiplayer Real-time",
-        duration: "2 ชม. 25 น.",
-        videoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=0",
-        isFreePreview: false,
-        section: "Workshop สร้างเกมจริง",
-      },
-      {
-        id: "ep-7",
-        order: 7,
-        title: "Ep.7 สรุปโปรเจกต์และแนวทางการ Deploy สู่ Steam & Web",
-        duration: "9 นาที",
-        videoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=0",
+        videoUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
         isFreePreview: false,
         section: "Workshop สร้างเกมจริง",
       },
@@ -132,18 +124,11 @@ export default function CoursePlayerPage() {
   const [hasCourseAccess, setHasCourseAccess] = useState(false);
 
   const [courseTitle, setCourseTitle] = useState("AI Game Developer: Vibe Coding");
+  const [courseDescription, setCourseDescription] = useState("");
   const [courseId, setCourseId] = useState<string | null>(null);
-  const [attachments, setAttachments] = useState<Attachment[]>([
-    {
-      id: "att-1",
-      title: "ซอร์สโค้ดเกม AI Game Developer (Complete Engine & Assets).zip",
-      fileSize: "24.5 MB",
-      fileType: "ZIP / TypeScript",
-      downloadUrl: "#",
-    },
-  ]);
+  const [attachments, setAttachments] = useState<Attachment[]>([]);
 
-  const [sections, setSections] = useState(FALLBACK_COURSE_SECTIONS);
+  const [sections, setSections] = useState<Section[]>(FALLBACK_COURSE_SECTIONS);
   const allEpisodes = sections.flatMap((s) => s.episodes);
 
   const [currentEpisodeIndex, setCurrentEpisodeIndex] = useState(0);
@@ -151,8 +136,9 @@ export default function CoursePlayerPage() {
 
   const [completedEpisodeIds, setCompletedEpisodeIds] = useState<string[]>([]);
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [activeTab, setActiveTab] = useState<"overview" | "resources" | "qa">("overview");
+  const [activeTab, setActiveTab] = useState<"overview" | "prompts" | "resources" | "qa">("overview");
   const [showAttachmentsDrawer, setShowAttachmentsDrawer] = useState(false);
+  const [copiedPromptId, setCopiedPromptId] = useState<string | null>(null);
 
   // ดึงข้อมูลคอร์สจริงจาก Supabase
   useEffect(() => {
@@ -169,6 +155,7 @@ export default function CoursePlayerPage() {
             id,
             title,
             slug,
+            description,
             required_tier,
             course_episodes (
               id,
@@ -176,7 +163,9 @@ export default function CoursePlayerPage() {
               video_url,
               duration_minutes,
               is_free_preview,
-              order_number
+              order_number,
+              content_html,
+              prompts
             ),
             course_attachments (
               id,
@@ -192,6 +181,7 @@ export default function CoursePlayerPage() {
         if (courseData) {
           setCourseId(courseData.id);
           setCourseTitle(courseData.title);
+          setCourseDescription(courseData.description || "");
 
           // แปลงไฟล์แนบ
           if (courseData.course_attachments && courseData.course_attachments.length > 0) {
@@ -206,7 +196,7 @@ export default function CoursePlayerPage() {
             );
           }
 
-          // จัดตอนเรียนลง Section
+          // จัดตอนเรียน
           const rawEpisodes = (courseData.course_episodes || []).sort(
             (a: any, b: any) => a.order_number - b.order_number
           );
@@ -217,18 +207,15 @@ export default function CoursePlayerPage() {
               order: ep.order_number,
               title: ep.title,
               duration: `${ep.duration_minutes || 10} นาที`,
-              videoUrl: ep.video_url || "https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=0",
+              videoUrl: ep.video_url || "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
               isFreePreview: ep.is_free_preview || false,
-              section: ep.order_number <= 2 ? "ทฤษฎีและการเตรียมเครื่องมือ" : "Workshop สร้างเกมจริง",
+              section: "เนื้อหาหลักสูตร",
+              contentHtml: ep.content_html || "",
+              prompts: Array.isArray(ep.prompts) ? ep.prompts : [],
             }));
 
-            // แยกกลุ่ม Section
-            const sec1 = mappedEpisodes.filter((e) => e.section === "ทฤษฎีและการเตรียมเครื่องมือ");
-            const sec2 = mappedEpisodes.filter((e) => e.section === "Workshop สร้างเกมจริง");
-
             setSections([
-              { name: "ทฤษฎีและการเตรียมเครื่องมือ", episodes: sec1.length > 0 ? sec1 : mappedEpisodes.slice(0, 2) },
-              { name: "Workshop สร้างเกมจริง", episodes: sec2.length > 0 ? sec2 : mappedEpisodes.slice(2) },
+              { name: "เนื้อหาหลักสูตร", episodes: mappedEpisodes },
             ]);
           }
 
@@ -260,92 +247,117 @@ export default function CoursePlayerPage() {
       }
     };
 
-    fetchCourseData();
-  }, [slug, supabase]);
+    if (slug) {
+      fetchCourseData();
+    }
+  }, [slug]);
 
-  // สลับสถานะเรียนจบ บันทึกลง Supabase จริง!
+  // สลับสถานะเรียนจบ
   const toggleComplete = async (episodeId: string) => {
-    const isCompleted = completedEpisodeIds.includes(episodeId);
-    const newCompleted = isCompleted
+    if (!currentUser || !courseId) return;
+
+    const isAlreadyCompleted = completedEpisodeIds.includes(episodeId);
+    const newCompleted = isAlreadyCompleted
       ? completedEpisodeIds.filter((id) => id !== episodeId)
       : [...completedEpisodeIds, episodeId];
 
     setCompletedEpisodeIds(newCompleted);
 
-    // บันทึกลง Supabase ถ้าล็อกอินอยู่
-    if (currentUser && courseId) {
-      await supabase.from("user_episode_progress").upsert({
-        user_id: currentUser.id,
-        course_id: courseId,
-        episode_id: episodeId,
-        completed: !isCompleted,
-        completed_at: new Date().toISOString(),
-      });
-    }
-  };
-
-  const handlePrev = () => {
-    if (currentEpisodeIndex > 0) {
-      setCurrentEpisodeIndex(currentEpisodeIndex - 1);
+    try {
+      if (isAlreadyCompleted) {
+        await supabase
+          .from("user_episode_progress")
+          .delete()
+          .eq("user_id", currentUser.id)
+          .eq("episode_id", episodeId);
+      } else {
+        await supabase.from("user_episode_progress").upsert({
+          user_id: currentUser.id,
+          course_id: courseId,
+          episode_id: episodeId,
+          completed: true,
+          completed_at: new Date().toISOString(),
+        });
+      }
+    } catch (err) {
+      console.error("Error updating progress:", err);
     }
   };
 
   const handleNext = () => {
     if (currentEpisodeIndex < allEpisodes.length - 1) {
-      setCurrentEpisodeIndex(currentEpisodeIndex + 1);
+      setCurrentEpisodeIndex((prev) => prev + 1);
     }
   };
 
-  const isCurrentCompleted = completedEpisodeIds.includes(currentEpisode?.id);
-  const canWatchCurrent = hasCourseAccess || currentEpisode?.isFreePreview;
+  const handlePrev = () => {
+    if (currentEpisodeIndex > 0) {
+      setCurrentEpisodeIndex((prev) => prev - 1);
+    }
+  };
+
+  const handleCopyPrompt = (promptText: string, id: string) => {
+    navigator.clipboard.writeText(promptText);
+    setCopiedPromptId(id);
+    setTimeout(() => setCopiedPromptId(null), 2000);
+  };
+
+  const canWatchCurrent = currentEpisode?.isFreePreview || hasCourseAccess;
+  const isCurrentCompleted = currentEpisode ? completedEpisodeIds.includes(currentEpisode.id) : false;
+  const progressPercent = allEpisodes.length > 0 
+    ? Math.round((completedEpisodeIds.length / allEpisodes.length) * 100) 
+    : 0;
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center space-y-3 font-sans text-white">
-        <Loader2 className="w-8 h-8 text-brand-emerald animate-spin" />
-        <p className="text-xs text-slate-400">กำลังเชื่อมต่อข้อมูลบทเรียนจาก Supabase...</p>
+      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center text-white space-y-4">
+        <Loader2 className="w-10 h-10 animate-spin text-brand-emerald" />
+        <p className="text-sm font-medium text-slate-400">กำลังเชื่อมต่อห้องเรียนและตรวจสอบสิทธิ์...</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-900 text-slate-100 flex flex-col font-sans">
+    <div className="min-h-screen flex flex-col bg-slate-950 text-slate-100 font-sans">
       
       {/* =========================================================================
-          1. TOP NAVIGATION BAR (สไตล์ UDEMY CLASSROOM)
+          1. CLASSROOM TOP NAVIGATION
       ========================================================================= */}
-      <header className="h-14 bg-slate-950 border-b border-slate-800 flex items-center justify-between px-4 sm:px-6 z-30 sticky top-0">
-        
-        {/* Left Title & Sidebar Toggle */}
-        <div className="flex items-center gap-3 min-w-0">
-          <button
-            onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors"
-            title="เปิด/ปิด สารบัญบทเรียน"
-          >
-            <Menu className="w-5 h-5" />
-          </button>
-
-          <div className="flex items-center gap-2 min-w-0">
-            <span className="font-bold text-sm text-white hidden sm:inline truncate">
-              {courseTitle}
-            </span>
-            <span className="text-slate-600 hidden sm:inline">•</span>
-            <span className="text-xs text-brand-emerald font-medium truncate">
-              {currentEpisode?.title}
-            </span>
-          </div>
-        </div>
-
-        {/* Right Action Buttons */}
+      <header className="h-14 bg-slate-900 border-b border-slate-800 px-4 flex items-center justify-between sticky top-0 z-40">
         <div className="flex items-center gap-3">
           <Link
             href="/courses"
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-300 hover:text-white bg-slate-800/80 hover:bg-slate-700 border border-slate-700 transition-colors"
+            className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-white px-2.5 py-1.5 rounded-lg hover:bg-slate-800 transition-colors"
           >
-            <ArrowLeft className="w-3.5 h-3.5" />
-            <span>คอร์สทั้งหมด</span>
+            <ArrowLeft className="w-4 h-4" />
+            <span className="hidden sm:inline">คอร์สทั้งหมด</span>
           </Link>
+          <div className="h-4 w-px bg-slate-800 hidden sm:block" />
+          <h1 className="text-xs sm:text-sm font-bold text-white truncate max-w-xs sm:max-w-md lg:max-w-xl">
+            {courseTitle}
+          </h1>
+        </div>
+
+        <div className="flex items-center gap-3">
+          {/* Progress Bar in Header */}
+          <div className="hidden md:flex items-center gap-2">
+            <span className="text-xs text-slate-400">เรียนจบแล้ว</span>
+            <div className="w-28 h-2 bg-slate-800 rounded-full overflow-hidden">
+              <div 
+                className="h-full bg-brand-emerald transition-all duration-300"
+                style={{ width: `${progressPercent}%` }}
+              />
+            </div>
+            <span className="text-xs font-bold text-brand-emerald">{progressPercent}%</span>
+          </div>
+
+          <button
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-200 border border-slate-700"
+          >
+            <BookOpen className="w-3.5 h-3.5 text-brand-emerald" />
+            <span className="hidden sm:inline">{sidebarOpen ? "ซ่อนสารบัญ" : "ดูสารบัญ"}</span>
+          </button>
         </div>
       </header>
 
@@ -360,12 +372,10 @@ export default function CoursePlayerPage() {
           {/* Video Player Box (Theatre View) */}
           <div className="w-full bg-black relative aspect-video max-h-[72vh] flex items-center justify-center border-b border-slate-800 shadow-2xl">
             {canWatchCurrent ? (
-              <iframe
-                src={currentEpisode?.videoUrl}
-                title={currentEpisode?.title}
-                className="w-full h-full"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
+              <VideoPlayer 
+                url={currentEpisode?.videoUrl} 
+                title={currentEpisode?.title} 
+                className="w-full h-full rounded-none"
               />
             ) : (
               // Locked Backdrop สำหรับผู้เรียนที่ไม่มีสิทธิ์
@@ -382,7 +392,7 @@ export default function CoursePlayerPage() {
                 <div className="flex items-center gap-3 pt-2">
                   <Link
                     href="/pricing"
-                    className="px-6 py-2.5 rounded-full text-xs font-bold text-white bg-gradient-to-r from-brand-orange to-amber-500 hover:from-brand-orange-hover hover:to-amber-600 shadow-lg shadow-brand-orange/25 transition-transform hover:scale-105"
+                    className="px-6 py-2.5 rounded-full text-xs font-bold text-white bg-brand-orange hover:bg-brand-orange-hover tactile-button-primary shadow-lg transition-transform hover:scale-105"
                   >
                     สมัครบุฟเฟต์เพื่อดูตอนนี้ (เริ่มต้น 599.-)
                   </Link>
@@ -393,7 +403,6 @@ export default function CoursePlayerPage() {
 
           {/* Player Bottom Control Action Bar */}
           <div className="bg-slate-900 border-b border-slate-800 px-4 sm:px-8 py-3 flex flex-wrap items-center justify-between gap-3">
-            
             <div className="flex items-center gap-2">
               <button
                 onClick={handlePrev}
@@ -407,8 +416,8 @@ export default function CoursePlayerPage() {
                 onClick={() => currentEpisode && toggleComplete(currentEpisode.id)}
                 className={`inline-flex items-center gap-1.5 px-4 py-1.5 rounded-xl text-xs font-bold transition-all shadow-sm ${
                   isCurrentCompleted
-                    ? "bg-brand-emerald text-white hover:bg-brand-emerald-dark"
-                    : "bg-blue-600 hover:bg-blue-500 text-white"
+                    ? "bg-brand-emerald text-slate-950 font-bold"
+                    : "bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700"
                 }`}
               >
                 <CheckCircle2 className="w-4 h-4" />
@@ -418,13 +427,12 @@ export default function CoursePlayerPage() {
               <button
                 onClick={handleNext}
                 disabled={currentEpisodeIndex === allEpisodes.length - 1}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-brand-emerald hover:bg-brand-emerald-dark disabled:opacity-40 disabled:hover:bg-brand-emerald text-slate-950 transition-colors"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-brand-emerald hover:bg-emerald-600 disabled:opacity-40 text-slate-950 transition-colors font-bold"
               >
                 ถัดไป <ChevronRight className="w-4 h-4" />
               </button>
             </div>
 
-            {/* Quick Attachment Button under Player */}
             {attachments.length > 0 && (
               <button
                 onClick={() => setShowAttachmentsDrawer(!showAttachmentsDrawer)}
@@ -436,7 +444,7 @@ export default function CoursePlayerPage() {
             )}
           </div>
 
-          {/* Quick Attachments Drawer */}
+          {/* Attachments Drawer */}
           {showAttachmentsDrawer && (
             <div className="bg-amber-950/30 border-b border-amber-500/20 px-4 sm:px-8 py-4 space-y-2.5 animate-in slide-in-from-top duration-200">
               <div className="flex items-center justify-between">
@@ -458,8 +466,8 @@ export default function CoursePlayerPage() {
                     className="p-3 rounded-xl bg-slate-900/90 border border-slate-700/80 flex items-center justify-between gap-3 hover:border-brand-emerald transition-colors"
                   >
                     <div className="flex items-center gap-2.5 min-w-0">
-                      <div className="w-8 h-8 rounded-lg bg-brand-orange/20 text-brand-orange flex items-center justify-center flex-shrink-0 font-bold text-xs">
-                        {file.fileType.includes("ZIP") ? "ZIP" : "PDF"}
+                      <div className="w-8 h-8 rounded-lg bg-brand-orange/20 text-brand-orange flex items-center justify-center flex-shrink-0 font-bold text-xs uppercase">
+                        {file.fileType}
                       </div>
                       <div className="min-w-0">
                         <div className="text-xs font-semibold text-slate-200 truncate">{file.title}</div>
@@ -468,8 +476,9 @@ export default function CoursePlayerPage() {
                     </div>
                     <a
                       href={file.downloadUrl}
-                      onClick={() => alert("กำลังดาวน์โหลดไฟล์...")}
-                      className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-brand-emerald text-slate-950 hover:bg-brand-emerald-dark transition-colors flex items-center gap-1 flex-shrink-0"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-brand-emerald text-slate-950 hover:bg-emerald-600 transition-colors flex items-center gap-1 flex-shrink-0"
                     >
                       <Download className="w-3 h-3" /> โหลด
                     </a>
@@ -479,21 +488,40 @@ export default function CoursePlayerPage() {
             </div>
           )}
 
-          {/* Bottom Tabs (สไตล์ Udemy: Overview, Resources, Q&A) */}
+          {/* Lesson Tabs: Overview, Prompts, Resources, Q&A */}
           <div className="p-4 sm:p-8 space-y-6">
             
             {/* Tab Headers */}
-            <div className="flex items-center gap-6 border-b border-slate-800 text-sm font-semibold">
+            <div className="flex items-center gap-6 border-b border-slate-800 text-sm font-semibold flex-wrap">
               <button
                 onClick={() => setActiveTab("overview")}
-                className={`pb-3 transition-colors relative ${
+                className={`pb-3 transition-colors relative flex items-center gap-1.5 ${
                   activeTab === "overview"
                     ? "text-brand-emerald border-b-2 border-brand-emerald"
                     : "text-slate-400 hover:text-slate-200"
                 }`}
               >
-                ภาพรวมบทเรียน (Overview)
+                <FileText className="w-4 h-4" />
+                <span>ภาพรวม & รายละเอียดบทเรียน</span>
               </button>
+
+              <button
+                onClick={() => setActiveTab("prompts")}
+                className={`pb-3 transition-colors relative flex items-center gap-1.5 ${
+                  activeTab === "prompts"
+                    ? "text-brand-emerald border-b-2 border-brand-emerald"
+                    : "text-slate-400 hover:text-slate-200"
+                }`}
+              >
+                <Copy className="w-4 h-4 text-brand-orange" />
+                <span>คลัง Prompt ประจำบท</span>
+                {(currentEpisode?.prompts?.length ?? 0) > 0 && (
+                  <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-brand-orange/20 text-brand-orange font-bold">
+                    {currentEpisode?.prompts?.length}
+                  </span>
+                )}
+              </button>
+
               <button
                 onClick={() => setActiveTab("resources")}
                 className={`pb-3 transition-colors relative flex items-center gap-1.5 ${
@@ -502,96 +530,162 @@ export default function CoursePlayerPage() {
                     : "text-slate-400 hover:text-slate-200"
                 }`}
               >
-                <span>ไฟล์และโค้ดดาวน์โหลด</span>
-                <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-slate-800 text-brand-orange">
-                  {attachments.length}
-                </span>
+                <FolderDown className="w-4 h-4" />
+                <span>ไฟล์และโค้ดดาวน์โหลด ({attachments.length})</span>
               </button>
+
               <button
                 onClick={() => setActiveTab("qa")}
-                className={`pb-3 transition-colors relative ${
+                className={`pb-3 transition-colors relative flex items-center gap-1.5 ${
                   activeTab === "qa"
                     ? "text-brand-emerald border-b-2 border-brand-emerald"
                     : "text-slate-400 hover:text-slate-200"
                 }`}
               >
-                ถาม-ตอบ (Q&A)
+                <HelpCircle className="w-4 h-4" />
+                <span>ถาม-ตอบ (Q&A)</span>
               </button>
             </div>
 
-            {/* Tab Content */}
+            {/* TAB 1: OVERVIEW & RICH CONTENT */}
             {activeTab === "overview" && (
-              <div className="space-y-4 max-w-3xl">
-                <h3 className="text-xl font-bold text-white">{currentEpisode?.title}</h3>
-                <p className="text-sm text-slate-300 leading-relaxed font-light">
-                  ในตอนนี้เราจะมาเรียนรู้การวางโครงสร้างโปรเจกต์ด้วยเทคนิค Vibe Coding โดยใช้ Claude Code 
-                  เป็นคู่หูในการเขียนสคริปต์ ออกแบบสถาปัตยกรรมตัวละคร และเชื่อมต่อ Event Loop ของ Game Engine 
-                  เพื่อให้ระบบรันได้อย่างลื่นไหลและพร้อมรองรับการขยายขนาดในอนาคต
-                </p>
-
-                <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 space-y-2 mt-4">
-                  <h4 className="text-xs font-bold text-brand-emerald uppercase tracking-wider">
-                    สิ่งที่คุณจะได้ลงมือทำในตอนนี้:
-                  </h4>
-                  <ul className="text-xs text-slate-300 space-y-1.5">
-                    <li className="flex items-center gap-2">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-brand-emerald" />
-                      <span>โครงสร้าง Clean Architecture ไร้ N+1 Query</span>
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-brand-emerald" />
-                      <span>การป้อน System Prompt ให้ Claude จัดการ Game Loop</span>
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-brand-emerald" />
-                      <span>บันทึกความคืบหน้าตรงเข้า Supabase ทันที</span>
-                    </li>
-                  </ul>
+              <div className="space-y-4 max-w-3xl animate-in fade-in">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-mono text-brand-emerald bg-brand-emerald/10 border border-brand-emerald/20 px-2 py-0.5 rounded-full font-semibold">
+                    EP.{currentEpisode?.order}
+                  </span>
+                  <span className="text-xs text-slate-400">• {currentEpisode?.duration}</span>
                 </div>
+                <h3 className="text-xl sm:text-2xl font-extrabold text-white">{currentEpisode?.title}</h3>
+
+                {currentEpisode?.contentHtml ? (
+                  <div 
+                    className="p-5 rounded-2xl bg-slate-900/80 border border-slate-800 text-sm text-slate-300 leading-relaxed space-y-3 prose prose-invert max-w-none"
+                    dangerouslySetInnerHTML={{ __html: currentEpisode.contentHtml }} 
+                  />
+                ) : (
+                  <div className="p-5 rounded-2xl bg-slate-900 border border-slate-800 text-sm text-slate-300 leading-relaxed font-light">
+                    {courseDescription || "เรียนรู้เนื้อหาสำคัญในบทเรียนนี้ พร้อมทดลองทำตามได้ทันที"}
+                  </div>
+                )}
               </div>
             )}
 
+            {/* TAB 2: PROMPTS WITH 1-CLICK COPY */}
+            {activeTab === "prompts" && (
+              <div className="space-y-4 max-w-3xl animate-in fade-in">
+                <div className="flex items-center justify-between pb-2 border-b border-slate-800">
+                  <div>
+                    <h3 className="text-base font-bold text-white flex items-center gap-2">
+                      <Sparkles className="w-4 h-4 text-brand-orange" />
+                      <span>ชุด Prompt สำหรับบทเรียนนี้</span>
+                    </h3>
+                    <p className="text-xs text-slate-400 mt-0.5">คลิกปุ่ม Copy เพื่อนำคำสั่งไปใช้งานกับ AI ทันที</p>
+                  </div>
+                </div>
+
+                {currentEpisode?.prompts && currentEpisode.prompts.length > 0 ? (
+                  <div className="space-y-4">
+                    {currentEpisode.prompts.map((p, idx) => {
+                      const isCopied = copiedPromptId === (p.id || `p-${idx}`);
+                      return (
+                        <div key={p.id || idx} className="p-5 rounded-2xl bg-slate-900 border border-slate-800 space-y-3 tactile-card">
+                          <div className="flex items-center justify-between gap-3">
+                            <h4 className="font-bold text-sm text-white">{p.title}</h4>
+                            <button
+                              onClick={() => handleCopyPrompt(p.prompt, p.id || `p-${idx}`)}
+                              className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all ${
+                                isCopied
+                                  ? "bg-brand-emerald text-slate-950 shadow-md font-bold"
+                                  : "bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700"
+                              }`}
+                            >
+                              {isCopied ? (
+                                <>
+                                  <Check className="w-3.5 h-3.5" />
+                                  <span>คัดลอกแล้ว! ✓</span>
+                                </>
+                              ) : (
+                                <>
+                                  <Copy className="w-3.5 h-3.5 text-brand-orange" />
+                                  <span>Copy Prompt</span>
+                                </>
+                              )}
+                            </button>
+                          </div>
+
+                          {p.description && (
+                            <p className="text-xs text-slate-400 font-normal leading-relaxed">{p.description}</p>
+                          )}
+
+                          <pre className="p-4 bg-slate-950 rounded-xl text-xs font-mono text-emerald-300 whitespace-pre-wrap break-words border border-slate-800/80 leading-relaxed selection:bg-brand-orange/30">
+                            {p.prompt}
+                          </pre>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="p-10 text-center text-slate-500 bg-slate-900 rounded-2xl border border-slate-800">
+                    <Copy className="w-8 h-8 mx-auto mb-2 text-slate-600 stroke-[1.5]" />
+                    <p className="text-sm font-semibold text-slate-400">บทเรียนนี้ไม่มี Prompt เสริม</p>
+                    <p className="text-xs text-slate-500 mt-1">สามารถดูเนื้อหาคำสั่งจากวิดีโอและเอกสารแนบได้ครับ</p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* TAB 3: RESOURCES */}
             {activeTab === "resources" && (
-              <div className="space-y-4 max-w-3xl">
-                <h3 className="text-base font-bold text-white">ไฟล์และซอร์สโค้ดทั้งหมดสำหรับคอร์สนี้</h3>
-                <div className="space-y-3">
-                  {attachments.map((file) => (
-                    <div
-                      key={file.id}
-                      className="p-4 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-between gap-4 hover:border-slate-700"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-brand-orange/15 text-brand-orange flex items-center justify-center font-bold text-xs">
-                          {file.fileType.includes("ZIP") ? "ZIP" : "PDF"}
-                        </div>
-                        <div>
-                          <div className="text-sm font-semibold text-white">{file.title}</div>
-                          <div className="text-xs text-slate-400">{file.fileSize} • {file.fileType}</div>
-                        </div>
-                      </div>
-                      <a
-                        href={file.downloadUrl}
-                        onClick={() => alert("เริ่มดาวน์โหลดไฟล์แล้วครับ")}
-                        className="px-4 py-2 rounded-xl text-xs font-bold bg-brand-emerald text-slate-950 hover:bg-brand-emerald-dark transition-colors flex items-center gap-1.5"
+              <div className="space-y-4 max-w-3xl animate-in fade-in">
+                <h3 className="text-base font-bold text-white">ไฟล์และซอร์สโค้ดสำหรับคอร์สนี้</h3>
+                {attachments.length === 0 ? (
+                  <div className="p-10 text-center text-slate-500 bg-slate-900 rounded-2xl border border-slate-800">
+                    <FolderDown className="w-8 h-8 mx-auto mb-2 text-slate-600 stroke-[1.5]" />
+                    <p className="text-sm font-semibold text-slate-400">ไม่มีไฟล์แนบในคอร์สนี้</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {attachments.map((file) => (
+                      <div
+                        key={file.id}
+                        className="p-4 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-between gap-4 hover:border-slate-700 tactile-card"
                       >
-                        <Download className="w-3.5 h-3.5" /> ดาวน์โหลด
-                      </a>
-                    </div>
-                  ))}
-                </div>
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-xl bg-brand-orange/15 text-brand-orange flex items-center justify-center font-bold text-xs uppercase">
+                            {file.fileType}
+                          </div>
+                          <div>
+                            <div className="text-sm font-semibold text-white">{file.title}</div>
+                            <div className="text-xs text-slate-400">{file.fileSize} • {file.fileType}</div>
+                          </div>
+                        </div>
+                        <a
+                          href={file.downloadUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="px-4 py-2 rounded-xl text-xs font-bold bg-brand-emerald text-slate-950 hover:bg-emerald-600 transition-colors flex items-center gap-1.5"
+                        >
+                          <Download className="w-3.5 h-3.5" /> ดาวน์โหลด
+                        </a>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
 
+            {/* TAB 4: Q&A */}
             {activeTab === "qa" && (
-              <div className="space-y-4 max-w-3xl">
+              <div className="space-y-4 max-w-3xl animate-in fade-in">
                 <div className="flex items-center justify-between">
                   <h3 className="text-base font-bold text-white">คำถามที่พบบ่อยและข้อสงสัย</h3>
-                  <button className="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-brand-orange text-white hover:bg-brand-orange-hover transition-colors">
+                  <button className="px-3.5 py-1.5 rounded-full text-xs font-bold bg-brand-orange text-white hover:bg-brand-orange-hover tactile-button-primary transition-colors">
                     + ตั้งคำถามใหม่
                   </button>
                 </div>
-                <div className="p-6 rounded-2xl bg-slate-900 border border-slate-800 text-center text-xs text-slate-400">
-                  ยังไม่มีคำถามในตอนนี้ หากคุณติดปัญหาในบทเรียน สามารถกดปุ่มตั้งคำถามเพื่อคุยกับทีมผู้สอนได้ตลอดเวลาครับ
+                <div className="p-8 rounded-2xl bg-slate-900 border border-slate-800 text-center text-xs text-slate-400">
+                  หากคุณติดปัญหาในบทเรียน สามารถกดปุ่มตั้งคำถามเพื่อคุยกับทีมผู้สอนได้ตลอดเวลาครับ
                 </div>
               </div>
             )}
@@ -600,115 +694,93 @@ export default function CoursePlayerPage() {
         </div>
 
         {/* =========================================================================
-            3. RIGHT / LEFT SIDEBAR: สารบัญบทเรียนแบบ ACCORDION (UDEMY STYLE)
+            3. RIGHT SIDEBAR: สารบัญบทเรียนแบบ ACCORDION
         ========================================================================= */}
         {sidebarOpen && (
           <aside className="w-full lg:w-96 bg-slate-900 border-l border-slate-800 flex flex-col h-auto lg:h-[calc(100vh-3.5rem)] lg:sticky lg:top-14 overflow-y-auto">
             
             {/* Sidebar Header */}
-            <div className="p-4 border-b border-slate-800 flex items-center justify-between bg-slate-950/50">
+            <div className="p-4 border-b border-slate-800 flex items-center justify-between bg-slate-950/60 sticky top-0 z-10">
               <span className="font-bold text-sm text-white flex items-center gap-2">
                 <BookOpen className="w-4 h-4 text-brand-emerald" />
                 สารบัญเนื้อหาคอร์ส
               </span>
-              <span className="text-xs text-slate-400">
+              <span className="text-xs text-slate-400 font-mono">
                 {completedEpisodeIds.length}/{allEpisodes.length} ตอนจบแล้ว
               </span>
             </div>
 
-            {/* Top Quick Resource Badge in Sidebar */}
-            {attachments.length > 0 && (
-              <div className="p-3 border-b border-slate-800/80 bg-amber-500/5">
-                <button
-                  onClick={() => setShowAttachmentsDrawer(true)}
-                  className="w-full p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-300 hover:bg-amber-500/20 transition-colors flex items-center justify-between text-xs font-bold"
-                >
-                  <span className="flex items-center gap-2">
-                    <FolderDown className="w-4 h-4 text-brand-orange" />
-                    ไฟล์ที่เกี่ยวข้อง ({attachments.length} ไฟล์)
-                  </span>
-                  <ChevronRight className="w-3.5 h-3.5 text-amber-400" />
-                </button>
-              </div>
-            )}
-
-            {/* Sections Accordion */}
+            {/* Episodes List */}
             <div className="divide-y divide-slate-800/80 flex-1">
-              {sections.map((section, sIdx) => (
-                <div key={sIdx} className="p-2">
-                  <div className="px-3 py-2 text-xs font-extrabold text-slate-400 uppercase tracking-wider flex items-center justify-between">
-                    <span>{section.name}</span>
-                    <span className="text-[10px] font-normal text-slate-500">{section.episodes.length} บทเรียน</span>
-                  </div>
+              {allEpisodes.map((ep, idx) => {
+                const isActive = idx === currentEpisodeIndex;
+                const isCompleted = completedEpisodeIds.includes(ep.id);
+                const canWatch = ep.isFreePreview || hasCourseAccess;
 
-                  <div className="space-y-1 mt-1">
-                    {section.episodes.map((ep) => {
-                      const isCurrent = ep.id === currentEpisode?.id;
-                      const isCompleted = completedEpisodeIds.includes(ep.id);
-                      const epGlobalIndex = allEpisodes.findIndex((e) => e.id === ep.id);
+                return (
+                  <button
+                    key={ep.id}
+                    onClick={() => setCurrentEpisodeIndex(idx)}
+                    className={`w-full p-4 text-left flex items-start gap-3 transition-colors ${
+                      isActive
+                        ? "bg-slate-800/90 text-white ring-1 ring-brand-emerald/30 shadow-sm"
+                        : "hover:bg-slate-800/40 text-slate-300"
+                    }`}
+                  >
+                    {/* Checkbox / Completion Icon */}
+                    <div
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleComplete(ep.id);
+                      }}
+                      className="mt-0.5 cursor-pointer"
+                      title={isCompleted ? "ทำเครื่องหมายว่ายังไม่จบ" : "ทำเครื่องหมายว่าจบแล้ว"}
+                    >
+                      {isCompleted ? (
+                        <CheckCircle2 className="w-4 h-4 text-brand-emerald flex-shrink-0" />
+                      ) : (
+                        <div className="w-4 h-4 rounded-full border border-slate-600 flex-shrink-0 hover:border-brand-emerald" />
+                      )}
+                    </div>
 
-                      return (
-                        <button
-                          key={ep.id}
-                          onClick={() => setCurrentEpisodeIndex(epGlobalIndex)}
-                          className={`w-full text-left p-3 rounded-xl transition-all flex items-start gap-3 relative ${
-                            isCurrent
-                              ? "bg-brand-emerald/15 text-white border border-brand-emerald/40 shadow-sm"
-                              : "hover:bg-slate-800/80 text-slate-300"
-                          }`}
-                        >
-                          {/* Active Indicator Bar */}
-                          {isCurrent && (
-                            <div className="absolute left-0 top-2 bottom-2 w-1 bg-brand-emerald rounded-r-full" />
-                          )}
+                    {/* Episode Text & Meta */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className="text-xs font-mono text-slate-500 font-semibold">{ep.order}.</span>
+                        <span className={`text-xs font-semibold leading-snug line-clamp-2 ${isActive ? "text-white" : "text-slate-300"}`}>
+                          {ep.title}
+                        </span>
+                      </div>
 
-                          {/* Checkbox Icon */}
-                          <div
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              toggleComplete(ep.id);
-                            }}
-                            className="mt-0.5 flex-shrink-0 cursor-pointer"
-                          >
-                            {isCompleted ? (
-                              <CheckCircle2 className="w-4 h-4 text-brand-emerald" />
-                            ) : (
-                              <div className="w-4 h-4 rounded-full border border-slate-600 hover:border-brand-emerald" />
-                            )}
-                          </div>
-
-                          {/* Episode Title & Duration */}
-                          <div className="flex-1 min-w-0">
-                            <div className={`text-xs font-semibold leading-snug line-clamp-2 ${isCurrent ? "text-brand-emerald" : ""}`}>
-                              {ep.title}
-                            </div>
-                            <div className="flex items-center gap-2 mt-1 text-[11px] text-slate-400">
-                              <span className="flex items-center gap-1">
-                                <Play className="w-2.5 h-2.5" /> {ep.duration}
-                              </span>
-                              {ep.isFreePreview ? (
-                                <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-brand-orange/20 text-brand-orange">
-                                  ดูฟรี
-                                </span>
-                              ) : !hasCourseAccess ? (
-                                <span className="text-[10px] text-slate-500 flex items-center gap-0.5">
-                                  <Lock className="w-2.5 h-2.5" /> ล็อก
-                                </span>
-                              ) : null}
-                            </div>
-                          </div>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              ))}
+                      <div className="flex items-center gap-2 mt-1.5 text-[11px] text-slate-500">
+                        <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {ep.duration}</span>
+                        {ep.isFreePreview && (
+                          <span className="text-brand-emerald font-bold px-1.5 py-0.2 rounded bg-brand-emerald/10 text-[9px]">
+                            FREE
+                          </span>
+                        )}
+                        {!canWatch && (
+                          <span className="text-brand-orange flex items-center gap-0.5 text-[10px]">
+                            <Lock className="w-2.5 h-2.5" /> ล็อก
+                          </span>
+                        )}
+                        {ep.prompts && ep.prompts.length > 0 && (
+                          <span className="text-amber-400 text-[10px]">
+                            ⚡ {ep.prompts.length} Prompts
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </button>
+                );
+              })}
             </div>
 
           </aside>
         )}
 
       </div>
+
     </div>
   );
 }
