@@ -170,7 +170,7 @@ export default function AgencyPage() {
   };
 
   return (
-    <div className="bg-brand-off-white min-h-screen py-10 font-sans">
+    <div className="bg-brand-slate text-slate-100 min-h-screen py-10 font-sans">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16">
 
         {/* =========================================================================
@@ -288,10 +288,10 @@ export default function AgencyPage() {
             <span className="text-xs font-bold text-brand-emerald uppercase tracking-wider">
               Our Capabilities
             </span>
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-brand-slate">
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-white">
               บริการพัฒนาซอฟต์แวร์ของเรา
             </h2>
-            <p className="text-xs sm:text-sm text-slate-500">
+            <p className="text-xs sm:text-sm text-slate-400">
               ครอบคลุมตั้งแต่การออกแบบหน้าตา วางโครงสร้างฐานข้อมูล ไปจนถึงต่อระบบ AI อัตโนมัติ
             </p>
           </div>
@@ -300,26 +300,26 @@ export default function AgencyPage() {
             {services.map((srv, idx) => (
               <div
                 key={idx}
-                className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/90 shadow-sm hover:shadow-xl hover:border-brand-emerald/40 transition-all flex flex-col justify-between group"
+                className="bg-slate-900 rounded-3xl p-6 sm:p-8 border border-slate-800 shadow-sm hover:shadow-xl hover:border-brand-emerald/40 transition-all flex flex-col justify-between group tactile-card"
               >
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-brand-emerald-light text-brand-emerald-dark">
+                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-brand-emerald/15 text-brand-emerald border border-brand-emerald/30">
                       {srv.tag}
                     </span>
-                    <span className="text-slate-300 font-mono text-xs font-bold">0{idx + 1}</span>
+                    <span className="text-slate-600 font-mono text-xs font-bold">0{idx + 1}</span>
                   </div>
 
-                  <h3 className="font-extrabold text-lg text-brand-slate group-hover:text-brand-emerald transition-colors">
+                  <h3 className="font-extrabold text-lg text-white group-hover:text-brand-emerald transition-colors">
                     {srv.title}
                   </h3>
 
-                  <p className="text-xs text-slate-600 leading-relaxed">
+                  <p className="text-xs text-slate-400 leading-relaxed">
                     {srv.description}
                   </p>
                 </div>
 
-                <div className="pt-6 mt-4 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-slate-700">
+                <div className="pt-6 mt-4 border-t border-slate-800 flex items-center justify-between text-xs font-bold text-slate-300">
                   <span>ปรึกษาขอบเขตงานฟรี</span>
                   <ArrowRight className="w-4 h-4 text-brand-orange group-hover:translate-x-1 transition-transform" />
                 </div>
@@ -333,16 +333,16 @@ export default function AgencyPage() {
             3. PORTFOLIO & CASE STUDIES (ตัวอย่างผลงานจริง พร้อมราคาเริ่มต้น)
         ========================================================================= */}
         <div id="portfolio" className="space-y-8 scroll-mt-20">
-          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-slate-200 pb-4">
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-slate-800 pb-4">
             <div>
               <span className="text-xs font-bold text-brand-orange uppercase tracking-wider flex items-center gap-1.5">
                 <Sparkles className="w-3.5 h-3.5" /> Proven Track Record
               </span>
-              <h2 className="text-2xl sm:text-3xl font-extrabold text-brand-slate mt-1">
+              <h2 className="text-2xl sm:text-3xl font-extrabold text-white mt-1">
                 ตัวอย่างผลงานที่ส่งมอบแล้ว
               </h2>
             </div>
-            <p className="text-xs text-slate-500 max-w-sm text-right sm:text-left">
+            <p className="text-xs text-slate-400 max-w-sm text-right sm:text-left">
               ราคาเริ่มต้นประเมินตามฟังก์ชันจริง ส่งงานตรงเวลา พร้อมคู่มือและซอร์สโค้ดเต็ม
             </p>
           </div>
@@ -351,10 +351,10 @@ export default function AgencyPage() {
             {portfolioItems.map((item) => (
               <div
                 key={item.id}
-                className="bg-white rounded-3xl border border-slate-200/90 overflow-hidden hover:shadow-xl hover:border-brand-orange/40 transition-all flex flex-col justify-between group"
+                className="bg-slate-900 rounded-3xl border border-slate-800 overflow-hidden hover:shadow-xl hover:border-brand-orange/40 transition-all flex flex-col justify-between group tactile-card"
               >
                 <div>
-                  <div className="p-5 bg-gradient-to-br from-slate-900 to-slate-800 text-white relative">
+                  <div className="p-5 bg-gradient-to-br from-slate-950 to-slate-800/80 text-white relative border-b border-slate-800/80">
                     <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-brand-orange text-white">
                       {item.category}
                     </span>
@@ -364,13 +364,13 @@ export default function AgencyPage() {
                   </div>
 
                   <div className="p-5 space-y-3">
-                    <p className="text-xs text-slate-600 leading-relaxed">
+                    <p className="text-xs text-slate-400 leading-relaxed">
                       {item.description}
                     </p>
 
                     <div className="flex flex-wrap gap-1.5 pt-1">
                       {item.tech.map((t, idx) => (
-                        <span key={idx} className="px-2 py-0.5 rounded text-[10px] bg-slate-100 text-slate-600">
+                        <span key={idx} className="px-2 py-0.5 rounded text-[10px] bg-slate-800 text-slate-300 border border-slate-700">
                           {t}
                         </span>
                       ))}
@@ -378,15 +378,15 @@ export default function AgencyPage() {
                   </div>
                 </div>
 
-                <div className="p-5 pt-0 border-t border-slate-100 mt-2 flex items-center justify-between">
+                <div className="p-5 pt-3 border-t border-slate-800 mt-2 flex items-center justify-between">
                   <div>
                     <span className="text-[10px] text-slate-400 block">ราคาเริ่มต้น ({item.deliveryTime})</span>
-                    <span className="text-base font-extrabold text-brand-slate">{item.startingPrice}</span>
+                    <span className="text-base font-extrabold text-white">{item.startingPrice}</span>
                   </div>
 
                   <a
                     href="#quote-form"
-                    className="px-3.5 py-1.5 rounded-xl text-xs font-bold text-slate-700 bg-slate-100 hover:bg-brand-orange hover:text-white transition-colors"
+                    className="px-3.5 py-1.5 rounded-xl text-xs font-bold text-slate-200 bg-slate-800 hover:bg-brand-orange hover:text-white transition-colors"
                   >
                     สนใจทำระบบนี้
                   </a>
@@ -400,12 +400,12 @@ export default function AgencyPage() {
         {/* =========================================================================
             4. TECH STACK WE USE (เทคโนโลยีที่เราใช้ระดับมาตรฐานสากล)
         ========================================================================= */}
-        <div className="bg-white rounded-3xl p-8 sm:p-12 border border-slate-200 shadow-sm space-y-8">
+        <div className="bg-slate-900 rounded-3xl p-8 sm:p-12 border border-slate-800 shadow-sm space-y-8 tactile-card">
           <div className="text-center space-y-2 max-w-xl mx-auto">
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-brand-slate">
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-white">
               Tech Stack ที่เราเลือกใช้
             </h2>
-            <p className="text-xs sm:text-sm text-slate-500">
+            <p className="text-xs sm:text-sm text-slate-400">
               เราเลือกเครื่องมือที่ทันสมัยที่สุดในวงการ เพื่อให้ระบบของคุณเร็ว ปลอดภัย และขยายขนาดได้สบาย
             </p>
           </div>
@@ -414,12 +414,12 @@ export default function AgencyPage() {
             {techStacks.map((stk, idx) => {
               const IconComponent = stk.icon;
               return (
-                <div key={idx} className="p-5 rounded-2xl bg-slate-50 border border-slate-100 space-y-3">
-                  <div className="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-brand-slate shadow-sm">
+                <div key={idx} className="p-5 rounded-2xl bg-slate-950/70 border border-slate-800 space-y-3">
+                  <div className="w-10 h-10 rounded-xl bg-slate-900 border border-slate-700 flex items-center justify-center text-white shadow-sm">
                     <IconComponent className="w-5 h-5 text-brand-emerald" />
                   </div>
-                  <h4 className="font-bold text-xs text-brand-slate uppercase tracking-wider">{stk.category}</h4>
-                  <ul className="space-y-1.5 text-xs text-slate-600">
+                  <h4 className="font-bold text-xs text-white uppercase tracking-wider">{stk.category}</h4>
+                  <ul className="space-y-1.5 text-xs text-slate-300">
                     {stk.items.map((tech, tIdx) => (
                       <li key={tIdx} className="flex items-center gap-1.5">
                         <span className="w-1.5 h-1.5 rounded-full bg-brand-emerald" />

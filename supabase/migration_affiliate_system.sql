@@ -66,3 +66,73 @@ CREATE TABLE IF NOT EXISTS public.affiliate_payouts (
 );
 
 CREATE INDEX IF NOT EXISTS idx_aff_payouts_affiliate ON public.affiliate_payouts(affiliate_id);
+
+-- 5. เปิดใช้งาน Row Level Security (RLS) และ Policies สำหรับระบบ Affiliate
+ALTER TABLE public.affiliates ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.affiliate_referrals ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.affiliate_commissions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.affiliate_payouts ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users and admins can manage own affiliate"
+  ON public.affiliates
+  FOR ALL
+  TO authenticated
+  USING ((SELECT auth.uid()) = user_id OR public.is_admin())
+  WITH CHECK ((SELECT auth.uid()) = user_id OR public.is_admin());
+
+CREATE POLICY "Users and admins can view referrals"
+  ON public.affiliate_referrals
+  FOR SELECT
+  TO authenticated
+  USING (
+    EXISTS (
+      SELECT 1 FROM public.affiliates a
+      WHERE a.id = affiliate_id AND a.user_id = (SELECT auth.uid())
+    )
+    OR public.is_admin()
+  );
+
+CREATE POLICY "Admins can manage referrals"
+  ON public.affiliate_referrals
+  FOR ALL
+  TO authenticated
+  USING (public.is_admin())
+  WITH CHECK (public.is_admin());
+
+CREATE POLICY "Users and admins can view commissions"
+  ON public.affiliate_commissions
+  FOR SELECT
+  TO authenticated
+  USING (
+    EXISTS (
+      SELECT 1 FROM public.affiliates a
+      WHERE a.id = affiliate_id AND a.user_id = (SELECT auth.uid())
+    )
+    OR public.is_admin()
+  );
+
+CREATE POLICY "Admins can manage commissions"
+  ON public.affiliate_commissions
+  FOR ALL
+  TO authenticated
+  USING (public.is_admin())
+  WITH CHECK (public.is_admin());
+
+CREATE POLICY "Users and admins can manage own payouts"
+  ON public.affiliate_payouts
+  FOR ALL
+  TO authenticated
+  USING (
+    EXISTS (
+      SELECT 1 FROM public.affiliates a
+      WHERE a.id = affiliate_id AND a.user_id = (SELECT auth.uid())
+    )
+    OR public.is_admin()
+  )
+  WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM public.affiliates a
+      WHERE a.id = affiliate_id AND a.user_id = (SELECT auth.uid())
+    )
+    OR public.is_admin()
+  );

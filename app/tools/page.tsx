@@ -278,13 +278,13 @@ export default function ToolsPage() {
   };
 
   return (
-    <div className="bg-brand-off-white min-h-screen py-10 font-sans">
+    <div className="bg-brand-slate text-slate-100 min-h-screen py-10 font-sans">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
 
         {/* =========================================================================
             HEADER BANNER (ถอดแบบจากภาพต้นแบบ "ศูนย์รวมเครื่องมือทั้งหมด")
         ========================================================================= */}
-        <div className="bg-gradient-to-r from-slate-900 via-teal-950 to-brand-slate rounded-3xl p-8 sm:p-10 text-white shadow-xl relative overflow-hidden border border-slate-800">
+        <div className="bg-gradient-to-r from-slate-900 via-teal-950 to-brand-slate rounded-3xl p-8 sm:p-10 text-white shadow-xl relative overflow-hidden border border-slate-800 tactile-card">
           <div className="absolute right-0 top-0 w-96 h-96 bg-brand-emerald/15 rounded-full blur-3xl pointer-events-none" />
           <div className="absolute left-1/3 bottom-0 w-80 h-80 bg-brand-orange/10 rounded-full blur-3xl pointer-events-none" />
 
@@ -322,7 +322,7 @@ export default function ToolsPage() {
         {/* =========================================================================
             SEARCH & CATEGORY TABS (ถอดแบบจากภาพต้นแบบแท็บกลมมน)
         ========================================================================= */}
-        <div className="bg-white rounded-2xl p-4 sm:p-6 border border-slate-200/80 shadow-sm space-y-4">
+        <div className="bg-slate-900 rounded-2xl p-4 sm:p-6 border border-slate-800 shadow-sm tactile-card space-y-4">
           <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
             
             {/* Search Box */}
@@ -333,7 +333,7 @@ export default function ToolsPage() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="ค้นหาชื่อโปรแกรม, เครื่องมือ, AI Prompt..."
-                className="w-full pl-10 pr-4 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-emerald/30 focus:border-brand-emerald transition-all"
+                className="w-full pl-10 pr-4 py-2.5 text-sm text-white placeholder:text-slate-500 bg-slate-950 border border-slate-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-emerald/30 focus:border-brand-emerald transition-all"
               />
             </div>
 
@@ -343,8 +343,8 @@ export default function ToolsPage() {
                 onClick={() => setActiveTab("all")}
                 className={`px-4 py-2 text-xs font-semibold rounded-full transition-all whitespace-nowrap ${
                   activeTab === "all"
-                    ? "bg-brand-slate text-white shadow"
-                    : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                    ? "bg-white text-slate-950 shadow"
+                    : "bg-slate-800 text-slate-300 hover:bg-slate-700"
                 }`}
               >
                 ทั้งหมด ({totalCount})
@@ -353,8 +353,8 @@ export default function ToolsPage() {
                 onClick={() => setActiveTab("desktop")}
                 className={`px-4 py-2 text-xs font-semibold rounded-full transition-all whitespace-nowrap flex items-center gap-1.5 ${
                   activeTab === "desktop"
-                    ? "bg-brand-emerald text-white shadow shadow-brand-emerald/20"
-                    : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                    ? "bg-brand-emerald text-slate-950 shadow shadow-brand-emerald/20"
+                    : "bg-slate-800 text-slate-300 hover:bg-slate-700"
                 }`}
               >
                 <Laptop className="w-3.5 h-3.5" />
@@ -365,7 +365,7 @@ export default function ToolsPage() {
                 className={`px-4 py-2 text-xs font-semibold rounded-full transition-all whitespace-nowrap flex items-center gap-1.5 ${
                   activeTab === "web"
                     ? "bg-indigo-600 text-white shadow shadow-indigo-600/20"
-                    : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                    : "bg-slate-800 text-slate-300 hover:bg-slate-700"
                 }`}
               >
                 <Globe className="w-3.5 h-3.5" />
@@ -376,7 +376,7 @@ export default function ToolsPage() {
                 className={`px-4 py-2 text-xs font-semibold rounded-full transition-all whitespace-nowrap flex items-center gap-1.5 ${
                   activeTab === "gems"
                     ? "bg-brand-orange text-white shadow shadow-brand-orange/20"
-                    : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                    : "bg-slate-800 text-slate-300 hover:bg-slate-700"
                 }`}
               >
                 <Sparkles className="w-3.5 h-3.5 text-amber-200" />
@@ -391,19 +391,19 @@ export default function ToolsPage() {
         ========================================================================= */}
         {(activeTab === "all" || activeTab === "desktop") && filteredDesktop.length > 0 && (
           <div className="space-y-6">
-            <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-teal-500 text-white flex items-center justify-center shadow-sm">
+                <div className="w-8 h-8 rounded-lg bg-teal-500 text-slate-950 flex items-center justify-center shadow-sm">
                   <Laptop className="w-4 h-4" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-extrabold text-brand-slate flex items-center gap-2">
+                  <h2 className="text-xl font-extrabold text-white flex items-center gap-2">
                     โปรแกรมสำเร็จรูป (Desktop Software)
-                    <span className="text-xs px-2 py-0.5 rounded-full bg-teal-100 text-teal-800 font-bold">
+                    <span className="text-xs px-2 py-0.5 rounded-full bg-teal-500/15 text-teal-300 border border-teal-500/30 font-bold">
                       {filteredDesktop.length} โปรแกรม
                     </span>
                   </h2>
-                  <p className="text-xs text-slate-500">ติดตั้งรันบนเครื่องคอมพิวเตอร์ของคุณ ประมวลผลเร็วด้วยการ์ดจอ ปลอดภัย ข้อมูลไม่หลุด</p>
+                  <p className="text-xs text-slate-400">ติดตั้งรันบนเครื่องคอมพิวเตอร์ของคุณ ประมวลผลเร็วด้วยการ์ดจอ ปลอดภัย ข้อมูลไม่หลุด</p>
                 </div>
               </div>
             </div>
@@ -415,29 +415,29 @@ export default function ToolsPage() {
                 return (
                   <div
                     key={tool.id}
-                    className="bg-white rounded-2xl border border-slate-200/90 overflow-hidden hover:shadow-xl hover:border-brand-emerald/40 transition-all flex flex-col justify-between group"
+                    className="bg-slate-900 rounded-2xl border border-slate-800 overflow-hidden hover:shadow-xl hover:border-brand-emerald/40 transition-all flex flex-col justify-between group tactile-card"
                   >
                     <div className="p-5 space-y-3">
                       <div className="flex items-center justify-between">
-                        <span className="px-2.5 py-0.5 rounded-md text-[10px] font-bold bg-slate-100 text-slate-700">
+                        <span className="px-2.5 py-0.5 rounded-md text-[10px] font-bold bg-slate-800 text-slate-300 border border-slate-700">
                           {tool.category}
                         </span>
                         <span
                           className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold ${
                             isPremium
                               ? "bg-brand-orange text-white"
-                              : "bg-brand-emerald-light text-brand-emerald-dark"
+                              : "bg-brand-emerald/15 text-brand-emerald border border-brand-emerald/30"
                           }`}
                         >
                           {isPremium ? "PREMIUM" : "STANDARD"}
                         </span>
                       </div>
 
-                      <h3 className="font-bold text-sm text-brand-slate group-hover:text-brand-emerald transition-colors line-clamp-1">
+                      <h3 className="font-bold text-sm text-white group-hover:text-brand-emerald transition-colors line-clamp-1">
                         {tool.name}
                       </h3>
 
-                      <p className="text-xs text-slate-500 leading-relaxed line-clamp-2">
+                      <p className="text-xs text-slate-400 leading-relaxed line-clamp-2">
                         {tool.description}
                       </p>
 
@@ -447,11 +447,11 @@ export default function ToolsPage() {
                       </div>
                     </div>
 
-                    <div className="p-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between">
-                      <span className="text-xs font-semibold text-slate-500">ฟรีในบุฟเฟต์</span>
+                    <div className="p-4 bg-slate-950/60 border-t border-slate-800 flex items-center justify-between">
+                      <span className="text-xs font-semibold text-slate-400">ฟรีในบุฟเฟต์</span>
                       <button
                         onClick={() => alert(`เริ่มดาวน์โหลด ${tool.name} แล้วครับ!`)}
-                        className="px-3.5 py-1.5 rounded-xl text-xs font-bold text-white bg-brand-emerald hover:bg-brand-emerald-dark transition-colors flex items-center gap-1.5 shadow-sm"
+                        className="px-3.5 py-1.5 rounded-xl text-xs font-bold text-slate-950 bg-brand-emerald hover:bg-emerald-400 transition-colors flex items-center gap-1.5 shadow-sm"
                       >
                         <Download className="w-3.5 h-3.5" />
                         <span>ดาวน์โหลด</span>
@@ -469,19 +469,19 @@ export default function ToolsPage() {
         ========================================================================= */}
         {(activeTab === "all" || activeTab === "web") && filteredWeb.length > 0 && (
           <div className="space-y-6 pt-4">
-            <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
               <div className="flex items-center gap-2.5">
                 <div className="w-8 h-8 rounded-lg bg-indigo-600 text-white flex items-center justify-center shadow-sm">
                   <Globe className="w-4 h-4" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-extrabold text-brand-slate flex items-center gap-2">
+                  <h2 className="text-xl font-extrabold text-white flex items-center gap-2">
                     แอปออนไลน์ (Cloud & Web Apps)
-                    <span className="text-xs px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-800 font-bold">
+                    <span className="text-xs px-2 py-0.5 rounded-full bg-indigo-500/15 text-indigo-300 border border-indigo-500/30 font-bold">
                       {filteredWeb.length} แอป
                     </span>
                   </h2>
-                  <p className="text-xs text-slate-500">เปิดใช้งานผ่านเบราว์เซอร์ได้ทันที ไม่ต้องติดตั้งโปรแกรม รองรับทั้งบนมือถือและคอมพิวเตอร์</p>
+                  <p className="text-xs text-slate-400">เปิดใช้งานผ่านเบราว์เซอร์ได้ทันที ไม่ต้องติดตั้งโปรแกรม รองรับทั้งบนมือถือและคอมพิวเตอร์</p>
                 </div>
               </div>
             </div>
@@ -490,31 +490,31 @@ export default function ToolsPage() {
               {filteredWeb.map((app) => (
                 <div
                   key={app.id}
-                  className="bg-white rounded-2xl p-5 border border-slate-200/90 hover:shadow-lg hover:border-indigo-400 transition-all flex flex-col justify-between group"
+                  className="bg-slate-900 rounded-2xl p-5 border border-slate-800 hover:shadow-lg hover:border-indigo-400 transition-all flex flex-col justify-between group tactile-card"
                 >
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
-                      <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-indigo-50 text-indigo-600">
+                      <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-indigo-500/15 text-indigo-300 border border-indigo-500/30">
                         {app.category}
                       </span>
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-brand-emerald text-white">
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-brand-emerald text-slate-950">
                         {app.badge}
                       </span>
                     </div>
 
-                    <h3 className="font-bold text-sm text-brand-slate group-hover:text-indigo-600 transition-colors">
+                    <h3 className="font-bold text-sm text-white group-hover:text-indigo-400 transition-colors">
                       {app.name}
                     </h3>
 
-                    <p className="text-xs text-slate-500 leading-relaxed line-clamp-2">
+                    <p className="text-xs text-slate-400 leading-relaxed line-clamp-2">
                       {app.description}
                     </p>
                   </div>
 
-                  <div className="pt-5 mt-2 border-t border-slate-100">
+                  <div className="pt-5 mt-2 border-t border-slate-800">
                     <button
                       onClick={() => alert(`กำลังเปิดเข้าสู่ระบบ ${app.name} ผ่าน SSO...`)}
-                      className="w-full py-2 rounded-xl text-xs font-bold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 transition-colors flex items-center justify-center gap-1.5"
+                      className="w-full py-2 rounded-xl text-xs font-bold text-indigo-300 bg-indigo-500/15 hover:bg-indigo-500/25 border border-indigo-500/30 transition-colors flex items-center justify-center gap-1.5"
                     >
                       <span>เปิดใช้งาน</span>
                       <ExternalLink className="w-3.5 h-3.5" />
@@ -531,19 +531,19 @@ export default function ToolsPage() {
         ========================================================================= */}
         {(activeTab === "all" || activeTab === "gems") && filteredGems.length > 0 && (
           <div className="space-y-6 pt-4">
-            <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
               <div className="flex items-center gap-2.5">
                 <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-brand-orange to-amber-500 text-white flex items-center justify-center shadow-sm">
                   <Sparkles className="w-4 h-4" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-extrabold text-brand-slate flex items-center gap-2">
+                  <h2 className="text-xl font-extrabold text-white flex items-center gap-2">
                     คลัง AI Gems & Custom System Prompts
                     <span className="text-xs px-2 py-0.5 rounded-full bg-brand-orange/15 text-brand-orange font-bold">
                       {filteredGems.length} Gems
                     </span>
                   </h2>
-                  <p className="text-xs text-slate-500">รวมคำสั่ง System Prompt เฉพาะทางสำหรับใส่ใน ChatGPT, Claude หรือ Custom GPTs ให้ตอบคมระดับมืออาชีพ</p>
+                  <p className="text-xs text-slate-400">รวมคำสั่ง System Prompt เฉพาะทางสำหรับใส่ใน ChatGPT, Claude หรือ Custom GPTs ให้ตอบคมระดับมืออาชีพ</p>
                 </div>
               </div>
             </div>
@@ -552,28 +552,28 @@ export default function ToolsPage() {
               {filteredGems.map((gem) => (
                 <div
                   key={gem.id}
-                  className="bg-white rounded-2xl border border-slate-200/90 overflow-hidden hover:shadow-xl hover:border-brand-orange/50 transition-all flex flex-col justify-between group"
+                  className="bg-slate-900 rounded-2xl border border-slate-800 overflow-hidden hover:shadow-xl hover:border-brand-orange/50 transition-all flex flex-col justify-between group tactile-card"
                 >
                   <div className="p-5 space-y-3">
                     <div className="flex items-center justify-between">
-                      <span className="text-[11px] font-bold text-slate-600">
+                      <span className="text-[11px] font-bold text-slate-300">
                         {gem.groupLabel}
                       </span>
-                      <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-slate-100 text-slate-700">
+                      <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-slate-800 text-slate-300 border border-slate-700">
                         {gem.targetModel}
                       </span>
                     </div>
 
-                    <h3 className="font-bold text-sm text-brand-slate group-hover:text-brand-orange transition-colors">
+                    <h3 className="font-bold text-sm text-white group-hover:text-brand-orange transition-colors">
                       {gem.title}
                     </h3>
 
-                    <p className="text-xs text-slate-500 leading-relaxed line-clamp-3">
+                    <p className="text-xs text-slate-400 leading-relaxed line-clamp-3">
                       {gem.description}
                     </p>
                   </div>
 
-                  <div className="p-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between">
+                  <div className="p-4 bg-slate-950/60 border-t border-slate-800 flex items-center justify-between">
                     <span className="text-[11px] text-slate-400">Prompt พร้อมใช้</span>
                     <button
                       onClick={() => setSelectedGem(gem)}
@@ -591,39 +591,39 @@ export default function ToolsPage() {
 
         {/* Modal แสดง System Prompt และปุ่ม Copy 1-Click */}
         {selectedGem && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-in fade-in duration-200">
-            <div className="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 space-y-5 shadow-2xl relative">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
+            <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-lg w-full p-6 sm:p-8 space-y-5 shadow-2xl relative tactile-card">
               
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <span className="text-xs font-bold text-brand-orange uppercase tracking-wider">
                     {selectedGem.groupLabel}
                   </span>
-                  <h3 className="text-lg font-bold text-brand-slate mt-1">
+                  <h3 className="text-lg font-bold text-white mt-1">
                     {selectedGem.title}
                   </h3>
                 </div>
                 <button
                   onClick={() => setSelectedGem(null)}
-                  className="p-1 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500"
+                  className="p-1.5 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white"
                 >
                   ✕
                 </button>
               </div>
 
-              <p className="text-xs text-slate-600 leading-relaxed">
+              <p className="text-xs text-slate-300 leading-relaxed">
                 {selectedGem.description}
               </p>
 
               {/* Box Code */}
               <div className="space-y-1.5">
-                <div className="flex items-center justify-between text-xs text-slate-500">
+                <div className="flex items-center justify-between text-xs text-slate-400">
                   <span>System Prompt (ก๊อปปี้ไปวางใน ChatGPT / Claude ได้ทันที):</span>
                   <span className="font-mono text-[10px] text-brand-emerald">
                     แนะนำใช้กับ {selectedGem.targetModel}
                   </span>
                 </div>
-                <div className="p-4 rounded-2xl bg-slate-900 text-slate-200 font-mono text-xs max-h-56 overflow-y-auto leading-relaxed border border-slate-800">
+                <div className="p-4 rounded-2xl bg-slate-950 text-slate-200 font-mono text-xs max-h-56 overflow-y-auto leading-relaxed border border-slate-800">
                   <pre className="whitespace-pre-wrap font-sans text-xs">{selectedGem.systemPrompt}</pre>
                 </div>
               </div>
@@ -632,7 +632,7 @@ export default function ToolsPage() {
               <div className="flex items-center gap-3 pt-2">
                 <button
                   onClick={() => handleCopyPrompt(selectedGem.systemPrompt)}
-                  className="flex-1 py-3 px-4 rounded-xl text-center text-xs font-bold text-white bg-brand-emerald hover:bg-brand-emerald-dark transition-colors flex items-center justify-center gap-2 shadow"
+                  className="flex-1 py-3 px-4 rounded-xl text-center text-xs font-bold text-slate-950 bg-brand-emerald hover:bg-emerald-400 transition-colors flex items-center justify-center gap-2 shadow"
                 >
                   {copiedPrompt ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
                   <span>{copiedPrompt ? "คัดลอก Prompt เรียบร้อยแล้ว!" : "คัดลอก System Prompt"}</span>
@@ -640,7 +640,7 @@ export default function ToolsPage() {
 
                 <button
                   onClick={() => setSelectedGem(null)}
-                  className="py-3 px-4 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 transition-colors"
+                  className="py-3 px-4 rounded-xl text-xs font-semibold text-slate-300 hover:bg-slate-800 transition-colors"
                 >
                   ปิดหน้าต่าง
                 </button>

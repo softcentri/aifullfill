@@ -190,7 +190,24 @@ export default function AdminOverviewPage() {
           <span>ทางลัดการจัดการด่วน (Quick Actions)</span>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          <Link
+            href="/admin/payments"
+            className="p-4 rounded-2xl bg-slate-800/60 border border-amber-500/40 hover:bg-slate-800 hover:border-amber-400 transition-all flex items-center gap-3.5 group"
+          >
+            <div className="w-10 h-10 rounded-xl bg-amber-500/15 text-amber-400 flex items-center justify-center shrink-0">
+              <CheckCircle2 className="w-5 h-5" />
+            </div>
+            <div>
+              <h4 className="text-xs font-bold text-white group-hover:text-amber-400 transition-colors">
+                ตรวจสลิป & อนุมัติคำสั่งซื้อ
+              </h4>
+              <p className="text-[11px] text-slate-400">
+                เช็คสลิปที่ผ่าน Pre-Approve และยืนยันสิทธิ์ถาวร
+              </p>
+            </div>
+          </Link>
+
           <Link
             href="/admin/users"
             className="p-4 rounded-2xl bg-slate-800/60 border border-slate-700/60 hover:bg-slate-800 hover:border-brand-orange/40 transition-all flex items-center gap-3.5 group"

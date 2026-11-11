@@ -25,7 +25,10 @@ import {
   ArrowLeft,
   Loader2,
   Copy,
-  Check
+  Check,
+  Award,
+  Send,
+  ShieldCheck
 } from "lucide-react";
 import { VideoPlayer } from "@/components/VideoPlayer";
 
@@ -121,12 +124,30 @@ export default function CoursePlayerPage() {
 
   const [isLoading, setIsLoading] = useState(true);
   const [currentUser, setCurrentUser] = useState<any>(null);
+  const [userProfile, setUserProfile] = useState<any>(null);
   const [hasCourseAccess, setHasCourseAccess] = useState(false);
 
   const [courseTitle, setCourseTitle] = useState("AI Game Developer: Vibe Coding");
   const [courseDescription, setCourseDescription] = useState("");
+  const [courseInstructor, setCourseInstructor] = useState("อาจารย์อั๋น (AIEbookAcademy)");
   const [courseId, setCourseId] = useState<string | null>(null);
   const [attachments, setAttachments] = useState<Attachment[]>([]);
+
+  // Q&A State
+  const [questions, setQuestions] = useState<any[]>([]);
+  const [showAskForm, setShowAskForm] = useState(false);
+  const [questionTitle, setQuestionTitle] = useState("");
+  const [questionContent, setQuestionContent] = useState("");
+  const [isSubmittingQuestion, setIsSubmittingQuestion] = useState(false);
+  const [replyInputs, setReplyInputs] = useState<Record<string, string>>({});
+  const [submittingReplyId, setSubmittingReplyId] = useState<string | null>(null);
+
+  // Certificate State (Opt-in when 100% completed)
+  const [userCertificate, setUserCertificate] = useState<any | null>(null);
+  const [declinedCertificate, setDeclinedCertificate] = useState(false);
+  const [showCertModal, setShowCertModal] = useState(false);
+  const [recipientNameInput, setRecipientNameInput] = useState("");
+  const [isIssuingCert, setIsIssuingCert] = useState(false);
 
   const [sections, setSections] = useState<Section[]>(FALLBACK_COURSE_SECTIONS);
   const allEpisodes = sections.flatMap((s) => s.episodes);
@@ -148,6 +169,16 @@ export default function CoursePlayerPage() {
         const { data: { user } } = await supabase.auth.getUser();
         setCurrentUser(user);
 
+        if (user) {
+          const { data: prof } = await supabase
+            .from("profiles")
+            .select("*")
+            .eq("user_id", user.id)
+            .maybeSingle();
+          setUserProfile(prof);
+          setRecipientNameInput(prof?.full_name || user.email?.split("@")[0] || "");
+        }
+
         // 1. ดึงข้อมูลคอร์สจาก Supabase ด้วย Slug
         const { data: courseData } = await supabase
           .from("courses")
@@ -156,6 +187,7 @@ export default function CoursePlayerPage() {
             title,
             slug,
             description,
+            instructor,
             required_tier,
             course_episodes (
               id,
@@ -182,6 +214,30 @@ export default function CoursePlayerPage() {
           setCourseId(courseData.id);
           setCourseTitle(courseData.title);
           setCourseDescription(courseData.description || "");
+          if (courseData.instructor) setCourseInstructor(courseData.instructor);
+
+          if (typeof window !== "undefined") {
+            const declined = localStorage.getItem(`cert_declined_${courseData.id}`);
+            if (declined === "true") setDeclinedCertificate(true);
+          }
+
+          // ดึงรายการคำถาม-คำตอบ (Q&A) ของคอร์สนี้
+          const { data: qaData } = await supabase
+            .from("course_questions")
+            .select(`
+              *,
+              profiles:user_id (full_name, email, role),
+              course_answers (
+                *,
+                profiles:user_id (full_name, email, role)
+              )
+            `)
+            .eq("course_id", courseData.id)
+            .order("created_at", { ascending: false });
+
+          if (qaData) {
+            setQuestions(qaData);
+          }
 
           // แปลงไฟล์แนบ
           if (courseData.course_attachments && courseData.course_attachments.length > 0) {
@@ -237,6 +293,18 @@ export default function CoursePlayerPage() {
 
             if (progress) {
               setCompletedEpisodeIds(progress.map((p: any) => p.episode_id));
+            }
+
+            // 4. ตรวจสอบว่าผู้เรียนเคยกดรับใบประกาศนียบัตรของคอร์สนี้แล้วหรือยัง
+            const { data: existingCert } = await supabase
+              .from("course_certificates")
+              .select("*")
+              .eq("user_id", user.id)
+              .eq("course_id", courseData.id)
+              .maybeSingle();
+
+            if (existingCert) {
+              setUserCertificate(existingCert);
             }
           }
         }
@@ -302,6 +370,141 @@ export default function CoursePlayerPage() {
     setTimeout(() => setCopiedPromptId(null), 2000);
   };
 
+  // ตั้งคำถามใหม่ใน Q&A
+  const handleAskQuestion = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!currentUser || !courseId || !questionTitle.trim() || !questionContent.trim()) return;
+    setIsSubmittingQuestion(true);
+
+    try {
+      const epTag = currentEpisode ? `EP.${currentEpisode.order}: ${currentEpisode.title}` : null;
+      const { data: newQ, error } = await supabase
+        .from("course_questions")
+        .insert({
+          course_id: courseId,
+          episode_title: epTag,
+          user_id: currentUser.id,
+          title: questionTitle.trim(),
+          content: questionContent.trim(),
+        })
+        .select(`
+          *,
+          profiles:user_id (full_name, email, role),
+          course_answers (
+            *,
+            profiles:user_id (full_name, email, role)
+          )
+        `)
+        .single();
+
+      if (!error && newQ) {
+        setQuestions([newQ, ...questions]);
+        setQuestionTitle("");
+        setQuestionContent("");
+        setShowAskForm(false);
+      }
+    } finally {
+      setIsSubmittingQuestion(false);
+    }
+  };
+
+  // ตอบคำถามใน Q&A
+  const handleReplyQuestion = async (questionId: string) => {
+    const text = (replyInputs[questionId] || "").trim();
+    if (!currentUser || !text) return;
+    setSubmittingReplyId(questionId);
+
+    try {
+      const isInstructor = userProfile?.role === "admin";
+      const { data: newAns, error } = await supabase
+        .from("course_answers")
+        .insert({
+          question_id: questionId,
+          user_id: currentUser.id,
+          content: text,
+          is_instructor_reply: isInstructor,
+        })
+        .select(`
+          *,
+          profiles:user_id (full_name, email, role)
+        `)
+        .single();
+
+      if (!error && newAns) {
+        setQuestions((prev) =>
+          prev.map((q) =>
+            q.id === questionId
+              ? { ...q, course_answers: [...(q.course_answers || []), newAns] }
+              : q
+          )
+        );
+        setReplyInputs((prev) => ({ ...prev, [questionId]: "" }));
+      }
+    } finally {
+      setSubmittingReplyId(null);
+    }
+  };
+
+  // สลับสถานะแก้ไขแล้ว (Resolved) ของคำถาม
+  const handleToggleResolved = async (questionId: string, currentResolved: boolean) => {
+    const { error } = await supabase
+      .from("course_questions")
+      .update({ is_resolved: !currentResolved })
+      .eq("id", questionId);
+
+    if (!error) {
+      setQuestions((prev) =>
+        prev.map((q) => (q.id === questionId ? { ...q, is_resolved: !currentResolved } : q))
+      );
+    }
+  };
+
+  // ผู้เรียนเลือกไม่รับใบเซอร์ตอนนี้
+  const handleDeclineCertificate = () => {
+    setDeclinedCertificate(true);
+    setShowCertModal(false);
+    if (courseId && typeof window !== "undefined") {
+      localStorage.setItem(`cert_declined_${courseId}`, "true");
+    }
+  };
+
+  // ออกใบประกาศนียบัตร (เมื่อเรียนจบ 100% และผู้เรียนกดยืนยันรับใบเซอร์)
+  const handleClaimCertificate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!currentUser || !courseId || !recipientNameInput.trim()) return;
+    setIsIssuingCert(true);
+
+    try {
+      const yearStr = new Date().getFullYear();
+      const randStr = Math.random().toString(36).substring(2, 8).toUpperCase();
+      const certCode = `CERT-${yearStr}-${randStr}`;
+
+      const { data: cert, error } = await supabase
+        .from("course_certificates")
+        .upsert(
+          {
+            certificate_code: userCertificate?.certificate_code || certCode,
+            user_id: currentUser.id,
+            course_id: courseId,
+            recipient_name: recipientNameInput.trim(),
+            course_title: courseTitle,
+            instructor_name: courseInstructor,
+          },
+          { onConflict: "user_id,course_id" }
+        )
+        .select()
+        .single();
+
+      if (!error && cert) {
+        setUserCertificate(cert);
+        setShowCertModal(false);
+        router.push(`/certificates/${cert.certificate_code}`);
+      }
+    } finally {
+      setIsIssuingCert(false);
+    }
+  };
+
   const canWatchCurrent = currentEpisode?.isFreePreview || hasCourseAccess;
   const isCurrentCompleted = currentEpisode ? completedEpisodeIds.includes(currentEpisode.id) : false;
   const progressPercent = allEpisodes.length > 0 
@@ -351,6 +554,27 @@ export default function CoursePlayerPage() {
             <span className="text-xs font-bold text-brand-emerald">{progressPercent}%</span>
           </div>
 
+          {/* ปุ่มรับ / ดูใบประกาศนียบัตร เมื่อเรียนจบ 100% */}
+          {progressPercent === 100 && currentUser && courseId && (
+            userCertificate ? (
+              <Link
+                href={`/certificates/${userCertificate.certificate_code}`}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-brand-emerald/20 hover:bg-brand-emerald/30 text-xs font-extrabold text-brand-emerald border border-brand-emerald/40 transition-colors"
+              >
+                <Award className="w-3.5 h-3.5 text-brand-orange" />
+                <span>ดูใบเซอร์ของคุณ</span>
+              </Link>
+            ) : (
+              <button
+                onClick={() => setShowCertModal(true)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-brand-orange hover:bg-brand-orange-hover text-xs font-extrabold text-white shadow transition-colors"
+              >
+                <Award className="w-3.5 h-3.5" />
+                <span>ขอรับใบเซอร์</span>
+              </button>
+            )
+          )}
+
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-200 border border-slate-700"
@@ -360,6 +584,41 @@ export default function CoursePlayerPage() {
           </button>
         </div>
       </header>
+
+      {/* แถบแจ้งเตือนเมื่อเรียนจบ 100% ให้ผู้เรียนเลือกได้ว่าจะรับใบประกาศนียบัตรหรือไม่ */}
+      {progressPercent === 100 && currentUser && courseId && !userCertificate && !declinedCertificate && (
+        <div className="bg-gradient-to-r from-brand-emerald/20 via-slate-900 to-brand-orange/20 border-b border-brand-emerald/40 px-4 sm:px-8 py-3 flex flex-col sm:flex-row items-center justify-between gap-3">
+          <div className="flex items-center gap-3 text-xs sm:text-sm">
+            <div className="w-8 h-8 rounded-full bg-brand-emerald text-slate-950 flex items-center justify-center shrink-0 font-bold">
+              <Award className="w-4 h-4" />
+            </div>
+            <div>
+              <span className="font-extrabold text-white">
+                🎉 ยินดีด้วย! คุณเรียนจบคอร์สนี้ครบ 100% แล้ว
+              </span>
+              <span className="text-slate-300 ml-2">
+                คุณต้องการรับใบประกาศนียบัตร (Certificate of Completion) สำหรับคอร์สนี้หรือไม่?
+              </span>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              onClick={() => setShowCertModal(true)}
+              className="px-4 py-1.5 rounded-full text-xs font-extrabold bg-brand-orange hover:bg-brand-orange-hover text-white shadow transition-all flex items-center gap-1.5"
+            >
+              <Award className="w-3.5 h-3.5" />
+              <span>รับใบประกาศนียบัตร</span>
+            </button>
+            <button
+              onClick={handleDeclineCertificate}
+              className="px-3.5 py-1.5 rounded-full text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition-colors"
+            >
+              ยังไม่รับ / ไม่ต้องการรับ
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* =========================================================================
           2. MAIN CLASSROOM WORKSPACE (Player + Accordion Sidebar)
@@ -544,6 +803,11 @@ export default function CoursePlayerPage() {
               >
                 <HelpCircle className="w-4 h-4" />
                 <span>ถาม-ตอบ (Q&A)</span>
+                {questions.length > 0 && (
+                  <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-brand-emerald/20 text-brand-emerald font-bold">
+                    {questions.length}
+                  </span>
+                )}
               </button>
             </div>
 
@@ -675,18 +939,223 @@ export default function CoursePlayerPage() {
               </div>
             )}
 
-            {/* TAB 4: Q&A */}
+            {/* TAB 4: Q&A (ระบบถาม-ตอบจริงใต้บทเรียน) */}
             {activeTab === "qa" && (
-              <div className="space-y-4 max-w-3xl animate-in fade-in">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-base font-bold text-white">คำถามที่พบบ่อยและข้อสงสัย</h3>
-                  <button className="px-3.5 py-1.5 rounded-full text-xs font-bold bg-brand-orange text-white hover:bg-brand-orange-hover tactile-button-primary transition-colors">
-                    + ตั้งคำถามใหม่
-                  </button>
+              <div className="space-y-6 max-w-3xl animate-in fade-in">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-800">
+                  <div>
+                    <h3 className="text-base font-bold text-white flex items-center gap-2">
+                      <MessageSquare className="w-4 h-4 text-brand-emerald" />
+                      <span>กระดานถาม-ตอบประจำหลักสูตร ({questions.length} คำถาม)</span>
+                    </h3>
+                    <p className="text-xs text-slate-400 mt-0.5">
+                      สอบถามข้อสงสัยเกี่ยวกับเนื้อหา โค้ด หรือเครื่องมือในบทเรียนนี้กับอาจารย์ผู้สอนและเพื่อนร่วมคลาส
+                    </p>
+                  </div>
+
+                  {currentUser && courseId ? (
+                    <button
+                      onClick={() => setShowAskForm(!showAskForm)}
+                      className="px-4 py-2 rounded-full text-xs font-bold bg-brand-orange text-white hover:bg-brand-orange-hover tactile-button-primary transition-colors self-start sm:self-auto"
+                    >
+                      {showAskForm ? "ยกเลิกการตั้งคำถาม" : "+ ตั้งคำถามใหม่"}
+                    </button>
+                  ) : (
+                    <Link
+                      href={`/login?next=/courses/${slug}`}
+                      className="px-4 py-2 rounded-full text-xs font-bold bg-slate-800 text-slate-200 hover:bg-slate-700 border border-slate-700 self-start sm:self-auto"
+                    >
+                      เข้าสู่ระบบเพื่อตั้งคำถาม →
+                    </Link>
+                  )}
                 </div>
-                <div className="p-8 rounded-2xl bg-slate-900 border border-slate-800 text-center text-xs text-slate-400">
-                  หากคุณติดปัญหาในบทเรียน สามารถกดปุ่มตั้งคำถามเพื่อคุยกับทีมผู้สอนได้ตลอดเวลาครับ
-                </div>
+
+                {/* ฟอร์มตั้งคำถามใหม่ */}
+                {showAskForm && currentUser && (
+                  <form
+                    onSubmit={handleAskQuestion}
+                    className="p-5 rounded-2xl bg-slate-900 border border-brand-orange/40 space-y-4 shadow-lg"
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-brand-orange">
+                        ตั้งคำถามสำหรับ {currentEpisode ? `EP.${currentEpisode.order}: ${currentEpisode.title}` : "คอร์สนี้"}
+                      </span>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-slate-300 mb-1">
+                        หัวข้อคำถาม / ปัญหาที่พบ <span className="text-rose-400">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={questionTitle}
+                        onChange={(e) => setQuestionTitle(e.target.value)}
+                        placeholder="เช่น ติดปัญหาตอนรันคำสั่งเชื่อมต่อ Supabase หรือตั้งค่า Prompt..."
+                        className="w-full px-3.5 py-2 text-xs bg-slate-950 border border-slate-800 rounded-xl text-white focus:outline-none focus:border-brand-emerald"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-slate-300 mb-1">
+                        รายละเอียดคำถาม <span className="text-rose-400">*</span>
+                      </label>
+                      <textarea
+                        rows={3}
+                        required
+                        value={questionContent}
+                        onChange={(e) => setQuestionContent(e.target.value)}
+                        placeholder="อธิบายอาการ Error หรือสิ่งที่ต้องการทราบเพิ่มเติม..."
+                        className="w-full px-3.5 py-2 text-xs bg-slate-950 border border-slate-800 rounded-xl text-white focus:outline-none focus:border-brand-emerald"
+                      />
+                    </div>
+
+                    <div className="flex justify-end gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setShowAskForm(false)}
+                        className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white"
+                      >
+                        ยกเลิก
+                      </button>
+                      <button
+                        type="submit"
+                        disabled={isSubmittingQuestion}
+                        className="px-5 py-2 rounded-xl text-xs font-extrabold bg-brand-emerald text-slate-950 hover:bg-emerald-600 disabled:opacity-50"
+                      >
+                        {isSubmittingQuestion ? "กำลังส่งคำถาม..." : "โพสต์คำถามทันที"}
+                      </button>
+                    </div>
+                  </form>
+                )}
+
+                {/* รายการคำถามและคำตอบ */}
+                {questions.length === 0 ? (
+                  <div className="p-10 rounded-2xl bg-slate-900 border border-slate-800 text-center space-y-2">
+                    <HelpCircle className="w-8 h-8 text-slate-600 mx-auto" />
+                    <p className="text-sm font-bold text-slate-300">ยังไม่มีคำถามในคอร์สนี้</p>
+                    <p className="text-xs text-slate-500">
+                      หากคุณมีข้อสงสัยหรือติดปัญหาในบทเรียน สามารถกดปุ่ม "+ ตั้งคำถามใหม่" เป็นคนแรกได้เลยครับ
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {questions.map((q) => {
+                      const canResolve =
+                        currentUser &&
+                        (currentUser.id === q.user_id || userProfile?.role === "admin");
+
+                      return (
+                        <div
+                          key={q.id}
+                          className="p-5 rounded-2xl bg-slate-900 border border-slate-800 space-y-4"
+                        >
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="space-y-1">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                {q.episode_title && (
+                                  <span className="px-2 py-0.5 rounded bg-slate-800 text-brand-emerald font-mono text-[10px] font-bold">
+                                    {q.episode_title}
+                                  </span>
+                                )}
+                                {q.is_resolved && (
+                                  <span className="px-2 py-0.5 rounded-full bg-brand-emerald/20 text-brand-emerald text-[10px] font-bold flex items-center gap-1">
+                                    <CheckCircle2 className="w-3 h-3" /> ได้รับคำตอบแล้ว
+                                  </span>
+                                )}
+                              </div>
+                              <h4 className="font-bold text-sm text-white pt-1">{q.title}</h4>
+                              <p className="text-xs text-slate-300 whitespace-pre-wrap leading-relaxed">
+                                {q.content}
+                              </p>
+                              <div className="text-[11px] text-slate-500 pt-1">
+                                ถามโดย{" "}
+                                <strong className="text-slate-300">
+                                  {q.profiles?.full_name || q.profiles?.email?.split("@")[0] || "ผู้เรียน"}
+                                </strong>{" "}
+                                • {new Date(q.created_at).toLocaleDateString("th-TH")}
+                              </div>
+                            </div>
+
+                            {canResolve && (
+                              <button
+                                onClick={() => handleToggleResolved(q.id, q.is_resolved)}
+                                className={`px-2.5 py-1 rounded-lg text-[10px] font-bold shrink-0 border transition-colors ${
+                                  q.is_resolved
+                                    ? "bg-slate-800 text-slate-400 border-slate-700"
+                                    : "bg-brand-emerald/15 text-brand-emerald border-brand-emerald/30 hover:bg-brand-emerald/25"
+                                }`}
+                              >
+                                {q.is_resolved ? "เปิดคำถามอีกครั้ง" : "✓ ทำเครื่องหมายว่าได้คำตอบแล้ว"}
+                              </button>
+                            )}
+                          </div>
+
+                          {/* รายการคำตอบ */}
+                          {Array.isArray(q.course_answers) && q.course_answers.length > 0 && (
+                            <div className="pl-4 border-l-2 border-slate-800 space-y-3 pt-2">
+                              {q.course_answers.map((ans: any) => (
+                                <div
+                                  key={ans.id}
+                                  className={`p-3.5 rounded-xl text-xs space-y-1.5 ${
+                                    ans.is_instructor_reply
+                                      ? "bg-brand-orange/10 border border-brand-orange/30"
+                                      : "bg-slate-950 border border-slate-800/80"
+                                  }`}
+                                >
+                                  <div className="flex items-center gap-2">
+                                    <span className="font-bold text-white">
+                                      {ans.profiles?.full_name ||
+                                        ans.profiles?.email?.split("@")[0] ||
+                                        "สมาชิก"}
+                                    </span>
+                                    {ans.is_instructor_reply && (
+                                      <span className="px-2 py-0.5 rounded-full bg-brand-orange text-white text-[9px] font-extrabold uppercase flex items-center gap-1">
+                                        <ShieldCheck className="w-2.5 h-2.5" /> อาจารย์ผู้สอน / Admin
+                                      </span>
+                                    )}
+                                    <span className="text-[10px] text-slate-500">
+                                      {new Date(ans.created_at).toLocaleDateString("th-TH")}
+                                    </span>
+                                  </div>
+                                  <p className="text-slate-200 whitespace-pre-wrap leading-relaxed">
+                                    {ans.content}
+                                  </p>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+
+                          {/* ช่องพิมพ์ตอบกลับ */}
+                          {currentUser && (
+                            <div className="flex items-center gap-2 pt-2">
+                              <input
+                                type="text"
+                                value={replyInputs[q.id] || ""}
+                                onChange={(e) =>
+                                  setReplyInputs((prev) => ({ ...prev, [q.id]: e.target.value }))
+                                }
+                                placeholder="พิมพ์คำตอบหรือคำแนะนำเพิ่มเติม..."
+                                className="flex-1 px-3.5 py-2 text-xs bg-slate-950 border border-slate-800 rounded-xl text-white focus:outline-none focus:border-brand-emerald"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => handleReplyQuestion(q.id)}
+                                disabled={
+                                  submittingReplyId === q.id || !(replyInputs[q.id] || "").trim()
+                                }
+                                className="px-3.5 py-2 rounded-xl text-xs font-bold bg-slate-800 hover:bg-brand-emerald hover:text-slate-950 text-slate-200 disabled:opacity-40 transition-colors flex items-center gap-1"
+                              >
+                                <Send className="w-3.5 h-3.5" />
+                                <span>ตอบกลับ</span>
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             )}
 
@@ -780,6 +1249,77 @@ export default function CoursePlayerPage() {
         )}
 
       </div>
+
+      {/* Modal ยืนยันการรับใบประกาศนียบัตร (เลือกได้ว่าจะรับหรือไม่ + แก้ไขชื่อบนใบเซอร์ได้) */}
+      {showCertModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-md w-full p-6 sm:p-8 space-y-5 shadow-2xl">
+            <div className="flex items-start justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-11 h-11 rounded-2xl bg-brand-orange/20 border border-brand-orange/40 text-brand-orange flex items-center justify-center shrink-0">
+                  <Award className="w-6 h-6" />
+                </div>
+                <div>
+                  <h3 className="text-base font-extrabold text-white">
+                    ออกใบประกาศนียบัตรสำเร็จหลักสูตร
+                  </h3>
+                  <p className="text-[11px] text-slate-400">
+                    คุณเรียนจบครบ 100% แล้ว สามารถเลือกรับใบเซอร์หรือข้ามได้ตามต้องการ
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowCertModal(false)}
+                className="text-slate-400 hover:text-white"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleClaimCertificate} className="space-y-4">
+              <div className="p-3.5 rounded-2xl bg-slate-950 border border-slate-800 text-xs space-y-1">
+                <div className="text-slate-400">หลักสูตรที่สำเร็จการศึกษา:</div>
+                <div className="font-bold text-brand-emerald">{courseTitle}</div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-300 mb-1.5">
+                  ชื่อ-นามสกุล ที่ต้องการให้ปรากฏบนใบประกาศนียบัตร <span className="text-rose-400">*</span>
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={recipientNameInput}
+                  onChange={(e) => setRecipientNameInput(e.target.value)}
+                  placeholder="ระบุชื่อ-นามสกุล (ภาษาไทย หรือ ภาษาอังกฤษ)"
+                  className="w-full px-3.5 py-2.5 text-xs bg-slate-950 border border-slate-800 rounded-xl text-white font-bold focus:outline-none focus:border-brand-emerald"
+                />
+                <p className="text-[11px] text-slate-500 mt-1">
+                  สามารถพิมพ์ได้ทั้งชื่อภาษาไทยและภาษาอังกฤษตามที่คุณต้องการนำไปใช้งาน
+                </p>
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-2.5 pt-2">
+                <button
+                  type="submit"
+                  disabled={isIssuingCert || !recipientNameInput.trim()}
+                  className="flex-1 py-3 px-4 rounded-xl text-xs font-extrabold bg-brand-emerald hover:bg-emerald-600 text-slate-950 transition-all flex items-center justify-center gap-1.5 shadow-lg shadow-brand-emerald/20 disabled:opacity-50"
+                >
+                  <Award className="w-4 h-4" />
+                  <span>{isIssuingCert ? "กำลังออกใบเซอร์..." : "ยืนยันรับใบประกาศนียบัตร"}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={handleDeclineCertificate}
+                  className="py-3 px-4 rounded-xl text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition-colors"
+                >
+                  ไม่รับใบเซอร์
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
     </div>
   );

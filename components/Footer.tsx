@@ -50,7 +50,7 @@ export function Footer() {
               <li><Link href="/projects" className="hover:text-brand-emerald transition-colors">คลังซอร์สโค้ดโปรเจกต์</Link></li>
               <li><Link href="/tools" className="hover:text-brand-emerald transition-colors">ศูนย์รวมเครื่องมือ AI</Link></li>
               <li><Link href="/tools?tab=gems" className="hover:text-brand-emerald transition-colors">AI Gems & Prompts</Link></li>
-              <li><Link href="/dashboard/api-keys" className="hover:text-brand-emerald transition-colors">MCP Server License</Link></li>
+              <li><Link href="/dashboard" className="hover:text-brand-emerald transition-colors">MCP Server License</Link></li>
             </ul>
           </div>
 

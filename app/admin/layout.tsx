@@ -131,6 +131,11 @@ export default function AdminLayout({
       exact: true,
     },
     {
+      name: "ตรวจสลิป & คำสั่งซื้อ (Payments)",
+      href: "/admin/payments",
+      icon: Sparkles,
+    },
+    {
       name: "จัดการสมาชิก & สิทธิ์ (Users)",
       href: "/admin/users",
       icon: Users,

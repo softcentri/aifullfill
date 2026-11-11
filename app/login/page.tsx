@@ -200,19 +200,19 @@ function LoginForm() {
       {/* Brand Header */}
       <div className="text-center space-y-2">
         <Link href="/" className="inline-flex items-center gap-2 group">
-          <div className="w-10 h-10 rounded-2xl bg-brand-slate flex items-center justify-center shadow-md">
+          <div className="w-10 h-10 rounded-2xl bg-slate-900 border border-slate-700/80 flex items-center justify-center shadow-md">
             <span className="text-white font-bold text-xl tracking-tighter flex items-center">
               A<span className="text-brand-orange">i</span>
             </span>
           </div>
-          <span className="font-extrabold text-2xl tracking-tight text-brand-slate">
-            ai<span className="text-brand-slate">full</span><span className="text-brand-orange">fill</span>
+          <span className="font-extrabold text-2xl tracking-tight text-white">
+            ai<span className="text-white">full</span><span className="text-brand-orange">fill</span>
           </span>
         </Link>
-        <h2 className="text-2xl font-extrabold text-brand-slate">
+        <h2 className="text-2xl font-extrabold text-white">
           {mode === "signin" ? "ยินดีต้อนรับกลับมา" : "เริ่มต้นเติมเต็มทักษะ AI"}
         </h2>
-        <p className="text-xs text-slate-500">
+        <p className="text-xs text-slate-400">
           {mode === "signin"
             ? "เข้าสู่ระบบเพื่อเข้าถึงคอร์สเรียน คลังโค้ด และสิทธิ์ MCP"
             : "สมัครสมาชิกฟรี เพื่อเริ่มต้นทดลองเรียนและใช้งานเครื่องมือ AI"}
@@ -220,10 +220,10 @@ function LoginForm() {
       </div>
 
       {/* Card Box */}
-      <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/90 shadow-xl space-y-6">
+      <div className="bg-slate-900 rounded-3xl p-6 sm:p-8 border border-slate-800 shadow-2xl tactile-card space-y-6">
         
         {/* Mode Switcher Tabs */}
-        <div className="flex rounded-2xl bg-slate-100 p-1">
+        <div className="flex rounded-2xl bg-slate-950 p-1 border border-slate-800">
           <button
             type="button"
             onClick={() => {
@@ -233,8 +233,8 @@ function LoginForm() {
             }}
             className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all ${
               mode === "signin"
-                ? "bg-white text-brand-slate shadow-sm"
-                : "text-slate-500 hover:text-slate-900"
+                ? "bg-slate-800 text-white shadow-sm"
+                : "text-slate-400 hover:text-white"
             }`}
           >
             เข้าสู่ระบบ
@@ -248,8 +248,8 @@ function LoginForm() {
             }}
             className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all ${
               mode === "signup"
-                ? "bg-white text-brand-slate shadow-sm"
-                : "text-slate-500 hover:text-slate-900"
+                ? "bg-slate-800 text-white shadow-sm"
+                : "text-slate-400 hover:text-white"
             }`}
           >
             สมัครสมาชิกใหม่
@@ -258,9 +258,9 @@ function LoginForm() {
 
         {/* Alert Error / Success */}
         {errorMessage && (
-          <div className="p-3.5 rounded-2xl bg-rose-50 border border-rose-200 text-rose-700 text-xs flex flex-col gap-2 animate-in fade-in">
+          <div className="p-3.5 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs flex flex-col gap-2 animate-in fade-in">
             <div className="flex items-start gap-2.5">
-              <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+              <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5 text-rose-400" />
               <span>{errorMessage}</span>
             </div>
             {showResend && (
@@ -268,7 +268,7 @@ function LoginForm() {
                 type="button"
                 onClick={handleResendConfirmation}
                 disabled={resending}
-                className="self-start text-[11px] font-bold text-rose-800 underline hover:text-rose-950 disabled:opacity-50"
+                className="self-start text-[11px] font-bold text-rose-300 underline hover:text-white disabled:opacity-50"
               >
                 {resending ? "กำลังส่งอีเมล..." : "คลิกที่นี่เพื่อส่งอีเมลยืนยันตัวตนใหม่อีกครั้ง"}
               </button>
@@ -277,7 +277,7 @@ function LoginForm() {
         )}
 
         {successMessage && (
-          <div className="p-3.5 rounded-2xl bg-brand-emerald/10 border border-brand-emerald/30 text-brand-emerald-dark text-xs flex flex-col gap-2 animate-in fade-in">
+          <div className="p-3.5 rounded-2xl bg-brand-emerald/10 border border-brand-emerald/30 text-emerald-300 text-xs flex flex-col gap-2 animate-in fade-in">
             <div className="flex items-start gap-2.5">
               <CheckCircle2 className="w-4 h-4 flex-shrink-0 mt-0.5 text-brand-emerald" />
               <span>{successMessage}</span>
@@ -287,7 +287,7 @@ function LoginForm() {
                 type="button"
                 onClick={handleResendConfirmation}
                 disabled={resending}
-                className="self-start text-[11px] font-bold text-brand-emerald underline hover:text-emerald-900 disabled:opacity-50"
+                className="self-start text-[11px] font-bold text-brand-emerald underline hover:text-emerald-200 disabled:opacity-50"
               >
                 {resending ? "กำลังส่ง..." : "ยังไม่ได้รับอีเมล? กดส่งใหม่อีกครั้ง"}
               </button>
@@ -300,7 +300,7 @@ function LoginForm() {
           type="button"
           onClick={handleGoogleLogin}
           disabled={isLoading}
-          className="w-full py-2.5 px-4 rounded-xl text-xs font-semibold text-slate-700 bg-white border border-slate-300 hover:bg-slate-50 transition-colors flex items-center justify-center gap-2.5 shadow-sm disabled:opacity-50"
+          className="w-full py-2.5 px-4 rounded-xl text-xs font-semibold text-slate-200 bg-slate-950 border border-slate-800 hover:bg-slate-800 hover:text-white transition-colors flex items-center justify-center gap-2.5 shadow-sm disabled:opacity-50"
         >
           <svg className="w-4 h-4" viewBox="0 0 24 24">
             <path
@@ -323,9 +323,12 @@ function LoginForm() {
           <span>เข้าสู่ระบบด้วย Google</span>
         </button>
 
-        <div className="relative flex items-center justify-center">
-          <div className="border-t border-slate-200 w-full" />
-          <span className="bg-white px-3 text-[11px] text-slate-400 uppercase font-medium">หรือใช้อีเมล</span>
+        <div className="relative flex items-center py-1">
+          <div className="flex-grow border-t border-slate-800" />
+          <span className="flex-shrink-0 mx-3 text-[11px] text-slate-500 uppercase font-medium">
+            หรือใช้อีเมล
+          </span>
+          <div className="flex-grow border-t border-slate-800" />
         </div>
 
         {/* Form */}
@@ -333,39 +336,39 @@ function LoginForm() {
           
           {mode === "signup" && (
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">ชื่อ-นามสกุล</label>
+              <label className="block text-xs font-bold text-slate-300 mb-1">ชื่อ-นามสกุล</label>
               <div className="relative">
-                <User className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                <User className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
                 <input
                   type="text"
                   required
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
                   placeholder="เช่น บัณฑิต บุญฤทธิ์"
-                  className="w-full pl-10 pr-4 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-emerald/30 focus:border-brand-emerald transition-all"
+                  className="w-full pl-10 pr-4 py-2.5 text-xs text-white placeholder:text-slate-500 bg-slate-950 border border-slate-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-emerald/30 focus:border-brand-emerald transition-all"
                 />
               </div>
             </div>
           )}
 
           <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1">อีเมลของคุณ</label>
+            <label className="block text-xs font-bold text-slate-300 mb-1">อีเมลของคุณ</label>
             <div className="relative">
-              <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+              <Mail className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
               <input
                 type="email"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="name@example.com"
-                className="w-full pl-10 pr-4 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-emerald/30 focus:border-brand-emerald transition-all"
+                className="w-full pl-10 pr-4 py-2.5 text-xs text-white placeholder:text-slate-500 bg-slate-950 border border-slate-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-emerald/30 focus:border-brand-emerald transition-all"
               />
             </div>
           </div>
 
           <div>
             <div className="flex items-center justify-between mb-1">
-              <label className="block text-xs font-bold text-slate-700">รหัสผ่าน</label>
+              <label className="block text-xs font-bold text-slate-300">รหัสผ่าน</label>
               {mode === "signin" && (
                 <Link href="/forgot-password" className="text-[11px] text-brand-emerald hover:underline">
                   ลืมรหัสผ่าน?
@@ -373,19 +376,19 @@ function LoginForm() {
               )}
             </div>
             <div className="relative">
-              <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+              <Lock className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
               <input
                 type={showPassword ? "text" : "password"}
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full pl-10 pr-10 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-emerald/30 focus:border-brand-emerald transition-all"
+                className="w-full pl-10 pr-10 py-2.5 text-xs text-white placeholder:text-slate-500 bg-slate-950 border border-slate-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-emerald/30 focus:border-brand-emerald transition-all"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300"
               >
                 {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
@@ -424,11 +427,11 @@ function LoginForm() {
 
 export default function LoginPage() {
   return (
-    <div className="min-h-[85vh] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-brand-off-white font-sans">
+    <div className="min-h-[85vh] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-brand-slate text-slate-100 bg-grid-pattern font-sans">
       <Suspense fallback={
         <div className="flex flex-col items-center justify-center space-y-2">
           <Loader2 className="w-8 h-8 text-brand-emerald animate-spin" />
-          <span className="text-xs text-slate-500">กำลังโหลด...</span>
+          <span className="text-xs text-slate-400">กำลังโหลด...</span>
         </div>
       }>
         <LoginForm />

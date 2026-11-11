@@ -179,13 +179,13 @@ export default function ProjectsPage() {
   };
 
   return (
-    <div className="bg-brand-off-white min-h-screen py-10">
+    <div className="bg-brand-slate text-slate-100 min-h-screen py-10">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
         
         {/* =========================================================================
             HEADER BANNER (ถอดแบบจากภาพต้นแบบ "โปรเจกต์พร้อมซอร์สโค้ด")
         ========================================================================= */}
-        <div className="bg-gradient-to-r from-slate-900 via-brand-slate to-slate-900 rounded-3xl p-8 sm:p-10 text-white shadow-xl relative overflow-hidden border border-slate-800">
+        <div className="bg-gradient-to-r from-slate-900 via-brand-slate to-slate-900 rounded-3xl p-8 sm:p-10 text-white shadow-xl relative overflow-hidden border border-slate-800 tactile-card">
           <div className="absolute right-0 top-0 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
           <div className="absolute left-1/3 bottom-0 w-80 h-80 bg-brand-emerald/15 rounded-full blur-3xl pointer-events-none" />
 
@@ -223,7 +223,7 @@ export default function ProjectsPage() {
         {/* =========================================================================
             SEARCH & FILTER CONTROLS
         ========================================================================= */}
-        <div className="bg-white rounded-2xl p-4 sm:p-6 border border-slate-200/80 shadow-sm space-y-4">
+        <div className="bg-slate-900 rounded-2xl p-4 sm:p-6 border border-slate-800 shadow-sm tactile-card space-y-4">
           <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
             
             {/* Search Box */}
@@ -234,7 +234,7 @@ export default function ProjectsPage() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="ค้นหาชื่อโปรเจกต์, เทคโนโลยี (Next.js, Python, LINE)..."
-                className="w-full pl-10 pr-4 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-emerald/30 focus:border-brand-emerald transition-all"
+                className="w-full pl-10 pr-4 py-2.5 text-sm text-white placeholder:text-slate-500 bg-slate-950 border border-slate-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-emerald/30 focus:border-brand-emerald transition-all"
               />
             </div>
 
@@ -244,8 +244,8 @@ export default function ProjectsPage() {
                 onClick={() => setSelectedTier("all")}
                 className={`px-4 py-2 text-xs font-semibold rounded-full transition-all whitespace-nowrap ${
                   selectedTier === "all"
-                    ? "bg-brand-slate text-white shadow"
-                    : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                    ? "bg-white text-slate-950 shadow"
+                    : "bg-slate-800 text-slate-300 hover:bg-slate-700"
                 }`}
               >
                 ทั้งหมด ({ALL_PROJECTS.length})
@@ -254,11 +254,11 @@ export default function ProjectsPage() {
                 onClick={() => setSelectedTier("standard")}
                 className={`px-4 py-2 text-xs font-semibold rounded-full transition-all whitespace-nowrap flex items-center gap-1.5 ${
                   selectedTier === "standard"
-                    ? "bg-brand-emerald text-white shadow shadow-brand-emerald/20"
-                    : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                    ? "bg-brand-emerald text-slate-950 shadow shadow-brand-emerald/20"
+                    : "bg-slate-800 text-slate-300 hover:bg-slate-700"
                 }`}
               >
-                <span className="w-2 h-2 rounded-full bg-brand-emerald-dark"></span>
+                <span className="w-2 h-2 rounded-full bg-brand-emerald"></span>
                 Standard โหลดได้ ({ALL_PROJECTS.filter((p) => p.requiredTier === "standard").length})
               </button>
               <button
@@ -266,7 +266,7 @@ export default function ProjectsPage() {
                 className={`px-4 py-2 text-xs font-semibold rounded-full transition-all whitespace-nowrap flex items-center gap-1.5 ${
                   selectedTier === "premium"
                     ? "bg-brand-orange text-white shadow shadow-brand-orange/20"
-                    : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                    : "bg-slate-800 text-slate-300 hover:bg-slate-700"
                 }`}
               >
                 <Sparkles className="w-3 h-3 text-amber-200" />
@@ -276,7 +276,7 @@ export default function ProjectsPage() {
           </div>
 
           {/* Category Tabs */}
-          <div className="flex items-center gap-2 overflow-x-auto pt-2 border-t border-slate-100">
+          <div className="flex items-center gap-2 overflow-x-auto pt-2 border-t border-slate-800">
             {categories.map((cat) => (
               <button
                 key={cat.id}
@@ -284,7 +284,7 @@ export default function ProjectsPage() {
                 className={`px-3 py-1.5 text-xs rounded-lg transition-colors whitespace-nowrap ${
                   selectedCategory === cat.id
                     ? "bg-indigo-600 text-white font-bold shadow-sm"
-                    : "text-slate-600 hover:bg-slate-100"
+                    : "text-slate-400 hover:bg-slate-800 hover:text-white"
                 }`}
               >
                 {cat.name}
@@ -303,11 +303,11 @@ export default function ProjectsPage() {
             return (
               <div
                 key={project.id}
-                className="bg-white rounded-2xl border border-slate-200/90 overflow-hidden hover:shadow-xl hover:border-brand-emerald/50 transition-all duration-300 flex flex-col justify-between group"
+                className="bg-slate-900 rounded-2xl border border-slate-800 overflow-hidden hover:shadow-xl hover:border-brand-emerald/50 transition-all duration-300 flex flex-col justify-between group tactile-card"
               >
                 <div>
                   {/* Card Visual Header with Double Badges */}
-                  <div className="p-5 bg-gradient-to-br from-slate-900 to-slate-800 text-white relative overflow-hidden">
+                  <div className="p-5 bg-gradient-to-br from-slate-950 to-slate-800/80 text-white relative overflow-hidden border-b border-slate-800/80">
                     <div className="flex items-center justify-between relative z-10">
                       {/* Badge ซ้าย: พร้อมโค้ด */}
                       <span className="px-2.5 py-1 rounded-md text-[11px] font-extrabold bg-indigo-500/80 text-white flex items-center gap-1 shadow">
@@ -319,7 +319,7 @@ export default function ProjectsPage() {
                         className={`px-2.5 py-1 rounded-md text-[11px] font-extrabold shadow ${
                           isPremium
                             ? "bg-brand-orange text-white"
-                            : "bg-brand-emerald text-white"
+                            : "bg-brand-emerald text-slate-950"
                         }`}
                       >
                         {isPremium ? "PREMIUM VIP" : "ฟรีสำหรับสมาชิก"}
@@ -342,7 +342,7 @@ export default function ProjectsPage() {
 
                   {/* Body Content */}
                   <div className="p-5 space-y-4">
-                    <p className="text-xs text-slate-600 leading-relaxed line-clamp-3">
+                    <p className="text-xs text-slate-300 leading-relaxed line-clamp-3">
                       {project.description}
                     </p>
 
@@ -351,7 +351,7 @@ export default function ProjectsPage() {
                       {project.techStack.map((tech, idx) => (
                         <span
                           key={idx}
-                          className="px-2 py-0.5 rounded-md text-[10px] font-medium bg-slate-100 text-slate-700"
+                          className="px-2 py-0.5 rounded-md text-[10px] font-medium bg-slate-800 text-slate-300 border border-slate-700/80"
                         >
                           {tech}
                         </span>
@@ -361,9 +361,9 @@ export default function ProjectsPage() {
                 </div>
 
                 {/* Card Footer with Download Action */}
-                <div className="p-5 pt-0 border-t border-slate-100 mt-4 flex items-center justify-between">
+                <div className="p-5 pt-3 border-t border-slate-800 mt-4 flex items-center justify-between">
                   <div className="text-[11px] text-slate-400 flex items-center gap-1">
-                    <FolderGit2 className="w-3.5 h-3.5 text-slate-500" />
+                    <FolderGit2 className="w-3.5 h-3.5 text-slate-400" />
                     <span>{project.fileSize} • มีคู่มือครบ</span>
                   </div>
 
@@ -382,37 +382,37 @@ export default function ProjectsPage() {
 
         {/* Modal แสดงรายละเอียดการดาวน์โหลดและติดตั้ง */}
         {selectedModalProject && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-in fade-in duration-200">
-            <div className="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 space-y-6 shadow-2xl relative">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
+            <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-lg w-full p-6 sm:p-8 space-y-6 shadow-2xl relative tactile-card">
               
               <div className="flex items-start justify-between gap-4">
                 <div>
-                  <span className="text-xs font-bold text-indigo-600 uppercase tracking-wider">
+                  <span className="text-xs font-bold text-indigo-400 uppercase tracking-wider">
                     {selectedModalProject.categoryLabel}
                   </span>
-                  <h3 className="text-lg font-bold text-brand-slate mt-1">
+                  <h3 className="text-lg font-bold text-white mt-1">
                     {selectedModalProject.title}
                   </h3>
                 </div>
                 <button
                   onClick={() => setSelectedModalProject(null)}
-                  className="p-1 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500"
+                  className="p-1.5 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white"
                 >
                   ✕
                 </button>
               </div>
 
-              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
-                <div className="text-xs font-bold text-slate-700 flex items-center justify-between">
+              <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-3">
+                <div className="text-xs font-bold text-slate-200 flex items-center justify-between">
                   <span>แพ็กเกจซอร์สโค้ดพร้อมใช้งาน</span>
                   <span className="text-brand-emerald font-semibold">
                     {selectedModalProject.fileSize}
                   </span>
                 </div>
-                <p className="text-xs text-slate-600 leading-relaxed">
+                <p className="text-xs text-slate-300 leading-relaxed">
                   {selectedModalProject.description}
                 </p>
-                <div className="text-[11px] text-slate-500 flex items-center gap-1">
+                <div className="text-[11px] text-slate-400 flex items-center gap-1">
                   <ShieldCheck className="w-4 h-4 text-brand-emerald" />
                   <span>ตรวจสอบสิทธิ์ผ่าน Supabase License เรียบร้อย</span>
                 </div>
@@ -420,17 +420,17 @@ export default function ProjectsPage() {
 
               {/* Quick Setup Code Snippet */}
               <div className="space-y-1.5">
-                <div className="flex items-center justify-between text-xs text-slate-500">
+                <div className="flex items-center justify-between text-xs text-slate-400">
                   <span>คำสั่งรันโปรเจกต์ (Terminal Setup):</span>
                   <button
                     onClick={handleCopyCode}
-                    className="text-indigo-600 hover:text-indigo-700 font-semibold flex items-center gap-1 text-[11px]"
+                    className="text-indigo-400 hover:text-indigo-300 font-semibold flex items-center gap-1 text-[11px]"
                   >
                     {copiedKey ? <Check className="w-3 h-3 text-brand-emerald" /> : <Copy className="w-3 h-3" />}
                     <span>{copiedKey ? "คัดลอกแล้ว!" : "คัดลอก"}</span>
                   </button>
                 </div>
-                <div className="p-3 rounded-xl bg-slate-900 text-slate-200 font-mono text-xs overflow-x-auto">
+                <div className="p-3 rounded-xl bg-slate-950 border border-slate-800 text-slate-200 font-mono text-xs overflow-x-auto">
                   <code>npm install && npm run dev</code>
                 </div>
               </div>
@@ -443,7 +443,7 @@ export default function ProjectsPage() {
                     e.preventDefault();
                     alert("เริ่มดาวน์โหลดไฟล์ ZIP พร้อมคู่มือเรียบร้อยครับ!");
                   }}
-                  className="flex-1 py-3 px-4 rounded-xl text-center text-xs font-bold text-white bg-brand-emerald hover:bg-brand-emerald-dark transition-colors flex items-center justify-center gap-2 shadow"
+                  className="flex-1 py-3 px-4 rounded-xl text-center text-xs font-bold text-slate-950 bg-brand-emerald hover:bg-emerald-400 transition-colors flex items-center justify-center gap-2 shadow"
                 >
                   <Download className="w-4 h-4" />
                   <span>ดาวน์โหลดไฟล์โปรเจกต์ (.ZIP)</span>
@@ -451,7 +451,7 @@ export default function ProjectsPage() {
 
                 <button
                   onClick={() => setSelectedModalProject(null)}
-                  className="py-3 px-4 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 transition-colors"
+                  className="py-3 px-4 rounded-xl text-xs font-semibold text-slate-300 hover:bg-slate-800 transition-colors"
                 >
                   ปิดหน้าต่าง
                 </button>
