@@ -58,6 +58,7 @@ export function Footer() {
           <div className="space-y-3">
             <h4 className="text-sm font-semibold text-white tracking-wider uppercase">ติดต่อ & ซัพพอร์ต</h4>
             <ul className="space-y-2 text-sm text-slate-400">
+              <li><Link href="/aff" className="text-brand-orange hover:text-brand-orange-hover font-semibold transition-colors flex items-center gap-1">โปรแกรมพาร์ทเนอร์ (Affiliate 25%)</Link></li>
               <li><Link href="/agency" className="hover:text-brand-emerald transition-colors">รับทำเว็บไซต์ & แอปด้วย AI</Link></li>
               <li><Link href="/pricing" className="hover:text-brand-emerald transition-colors">อัตราค่าบริการบุฟเฟต์</Link></li>
               <li><a href="https://line.me" target="_blank" rel="noreferrer" className="flex items-center gap-1.5 hover:text-brand-emerald transition-colors"><MessageCircle className="w-3.5 h-3.5 text-brand-emerald" /> LINE Official</a></li>

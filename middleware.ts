@@ -31,6 +31,18 @@ export async function middleware(request: NextRequest) {
 
   await supabase.auth.getUser();
 
+  // Capture ?ref=CODE for Affiliate tracking (valid for 30 days)
+  const refCode = request.nextUrl.searchParams.get("ref");
+  if (refCode && refCode.trim().length > 0) {
+    const cleanRef = refCode.trim().toUpperCase();
+    supabaseResponse.cookies.set("affiliate_ref", cleanRef, {
+      maxAge: 30 * 24 * 60 * 60, // 30 days
+      path: "/",
+      httpOnly: false, // accessible to client checkout if needed
+      sameSite: "lax",
+    });
+  }
+
   return supabaseResponse;
 }
 

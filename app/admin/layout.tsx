@@ -19,6 +19,7 @@ import {
   Menu,
   X,
   ExternalLink,
+  DollarSign,
 } from "lucide-react";
 
 export default function AdminLayout({
@@ -143,6 +144,11 @@ export default function AdminLayout({
       name: "จัดการคอร์สเรียน (Courses)",
       href: "/admin/courses",
       icon: BookOpen,
+    },
+    {
+      name: "พาร์ทเนอร์ & ค่าคอม (Affiliates)",
+      href: "/admin/affiliates",
+      icon: DollarSign,
     },
   ];
 

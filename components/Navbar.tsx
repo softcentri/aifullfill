@@ -146,6 +146,13 @@ export function Navbar() {
               <Briefcase className="w-4 h-4 text-amber-400" />
               รับทำระบบ
             </Link>
+            <Link
+              href="/aff"
+              className="px-3 py-2 rounded-lg text-brand-orange hover:text-white hover:bg-slate-800/80 transition-colors flex items-center gap-1.5 font-semibold"
+            >
+              <Sparkles className="w-4 h-4 text-brand-orange" />
+              <span>Affiliate 25%</span>
+            </Link>
           </nav>
 
           {/* Action Buttons & Auth Status */}
